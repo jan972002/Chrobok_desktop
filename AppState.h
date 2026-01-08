@@ -3,7 +3,8 @@
 //
 #pragma once
 #include<string>
-
+#include<vector>
+#include<mutex>
 
 struct AppState {
     // Interfejs
@@ -23,7 +24,19 @@ struct AppState {
     bool show_aboutApp_info = false;
     bool show_aboutUs_info = false;
     bool show_aboutProject_info = false;
+    bool show_console = true;
 
+    bool is_running = false;
+
+    // Stany ruchu
+    bool ruch_przod = false;
+    bool ruch_tyl = false;
+    bool ruch_lewo = false;
+    bool ruch_prawo = false;
+    bool skret_lewo = false;
+    bool skret_prawo = false;
+    bool zatrzymanie = false;
+    bool zerowanie_ramienia = false;
 
     // Zmienne Logiczne
     int opoznienieChwytaka = 3; // 0-5
@@ -46,5 +59,7 @@ struct AppState {
     std::string oNas = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa";
     std::string oProjekcie = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa ";
 
+    std::vector<std::string> historia_komend;
+    int max_logow = 5;
 };
 

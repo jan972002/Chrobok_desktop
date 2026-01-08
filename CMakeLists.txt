@@ -39,7 +39,7 @@ set(IMGUI_SOURCES
         Logic.cpp
 )
 
-add_executable(Chrobok_desktop main.cpp ${IMGUI_SOURCES})
+add_executable(Chrobok_desktop WIN32 main.cpp ${IMGUI_SOURCES})
 
 target_include_directories(Chrobok_desktop PRIVATE
     ${imgui_SOURCE_DIR}

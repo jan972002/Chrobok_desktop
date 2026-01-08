@@ -2,11 +2,14 @@
 #include "ConfigManager.h"
 #include <GLFW/glfw3.h>
 #include "imgui_impl_opengl3.h"
+#include "Logic.h"
+#include <thread>
 
 int main() {
     if (!glfwInit()) return -1;
 
     AppState state;
+    Logic logic;
     ConfigManager::Laduj(state);
 
     int monitorCount;
@@ -25,6 +28,10 @@ int main() {
 
     GuiModule::Setup(window);
 
+    state.is_running = true;
+    std::thread logicThread(&Logic::ParseCommand, &logic, std::ref(state));
+    logicThread.detach();
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
@@ -39,6 +46,7 @@ int main() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
+    state.is_running = false;
 
     ConfigManager::Zapisz(state);
     GuiModule::Shutdown();

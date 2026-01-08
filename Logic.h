@@ -8,4 +8,7 @@
 class Logic{
 public:
     static void ZerowanieRamienia(AppState&);
+    void SendCommand(AppState& state, std::string cmd);
+    void ParseCommand(AppState& state);
+    void AddLog(AppState& state, std::string cmd);
 };

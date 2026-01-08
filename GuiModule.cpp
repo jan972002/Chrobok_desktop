@@ -165,20 +165,29 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
 
     if (state.show_sterowanie_ruchem) {
         WymusGraniceOkna("Ruch");
-        ImGui::Begin("Ruch", &state.show_sterowanie_ruchem, ImGuiWindowFlags_AlwaysAutoResize );
-            int stale_x = 100;int stale_y = 60;
-            ImGui::Dummy(ImVec2(stale_x, stale_y));ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ARROW_UP "##Przod", ImVec2(stale_x, stale_y)) ) {}
-            if (ImGui::Button(ICON_FA_ARROW_LEFT "##Lewo", ImVec2(stale_x, stale_y))) {} ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_STOP "##Stop", ImVec2(stale_x, stale_y))) {} ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ARROW_RIGHT "##Prawo", ImVec2(stale_x, stale_y))) {}
-            ImGui::Dummy(ImVec2(stale_x, stale_y));ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ARROW_DOWN "##Tyl", ImVec2(stale_x, stale_y))) {}
-            ImGui::SameLine();ImGui::Dummy(ImVec2(stale_x, stale_y));
-            if (ImGui::Button(ICON_FA_ROTATE_LEFT "##OBR.L", ImVec2(stale_x, stale_y))) {}
-            ImGui::SameLine();ImGui::Dummy(ImVec2(stale_x,stale_y));ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_ROTATE_RIGHT "##OBR.P", ImVec2(stale_x, stale_y))) {}
-
+        ImGui::Begin("Ruch", &state.show_sterowanie_ruchem, ImGuiWindowFlags_AlwaysAutoResize);
+        int stale_x = 100; int stale_y = 60;
+        ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
+        ImGui::Button(ICON_FA_ARROW_UP "##Przod", ImVec2(stale_x, stale_y));
+        state.ruch_przod = ImGui::IsItemActive();
+        ImGui::Button(ICON_FA_ARROW_LEFT "##Lewo", ImVec2(stale_x, stale_y));
+        state.ruch_lewo = ImGui::IsItemActive();
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_STOP "##Stop", ImVec2(stale_x, stale_y))) {
+            state.zatrzymanie = true;
+        }
+        ImGui::SameLine();
+        ImGui::Button(ICON_FA_ARROW_RIGHT "##Prawo", ImVec2(stale_x, stale_y));
+        state.ruch_prawo = ImGui::IsItemActive();
+        ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
+        ImGui::Button(ICON_FA_ARROW_DOWN "##Tyl", ImVec2(stale_x, stale_y));
+        state.ruch_tyl = ImGui::IsItemActive();
+        ImGui::Spacing();
+        if (ImGui::Button(ICON_FA_ROTATE_LEFT "##OBR.L", ImVec2(stale_x, stale_y))) {}
+        state.skret_lewo = ImGui::IsItemActive();
+        ImGui::SameLine(); ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ROTATE_RIGHT "##OBR.P", ImVec2(stale_x, stale_y))) {}
+        state.skret_prawo = ImGui::IsItemActive();
         ImGui::End();
     }
 
@@ -207,7 +216,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
 
             ImGui::ColorEdit3(" Kolor tła", state.bgColor, ImGuiColorEditFlags_NoInputs);
             ImGui::ColorEdit3(" Kolor czcionki", state.textColor, ImGuiColorEditFlags_NoInputs);
-            ImGui::Checkbox(" Pokaz statystyki FPS", &state.show_debug_info);
+            ImGui::Checkbox(" Statystyki", &state.show_debug_info);
         ImGui::End();
     }
 
@@ -230,6 +239,10 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     if (state.show_debug_info) {
         ImGui::SetNextWindowPos(ImVec2(10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
         ImGui::Begin("FPS_Overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+        for (const auto& log : state.historia_komend) {
+            ImGui::Text("> %s", log.c_str());
+        }
+        ImGui::Separator();
         ImGui::Text("Wydajnosc: %.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
     }
