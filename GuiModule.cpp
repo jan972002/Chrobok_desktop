@@ -140,7 +140,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     }
     if (state.show_aboutUs_info) {
         WymusGraniceOkna("O Nas");
-        ImGui::Begin("O Nas", &state.show_aboutUs_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("O Nas", &state.show_aboutUs_info,  ImGuiWindowFlags_NoCollapse);
             ImGui::Dummy(ImVec2(200, 0));
             ImGui::TextWrapped("%s" ,state.oNas.c_str());
         ImGui::End();

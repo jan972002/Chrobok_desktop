@@ -50,3 +50,16 @@ if(WIN32)
 else()
     target_link_libraries(Chrobok_desktop PRIVATE glfw GL)
 endif()
+if(WIN32)
+    get_filename_component(MINGW_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+    set(DLLS_TO_COPY
+        "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+        "${MINGW_BIN_DIR}/libstdc++-6.dll"
+        "${MINGW_BIN_DIR}/libwinpthread-1.dll"
+    )
+    add_custom_command(TARGET Chrobok_desktop POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${DLLS_TO_COPY}
+        $<TARGET_FILE_DIR:Chrobok_desktop>
+    )
+endif()
