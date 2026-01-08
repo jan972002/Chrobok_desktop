@@ -2,6 +2,8 @@
 // Created by jan97 on 08.01.2026.
 //
 #pragma once
+#include<string>
+
 
 struct AppState {
     // Interfejs
@@ -18,6 +20,10 @@ struct AppState {
     bool show_odczyt_lidar = false;
     bool show_ustawienia_aplikacji = false;
     bool show_debug_info = false;
+    bool show_aboutApp_info = false;
+    bool show_aboutUs_info = false;
+    bool show_aboutProject_info = false;
+
 
     // Zmienne Logiczne
     int opoznienieChwytaka = 3; // 0-5
@@ -32,7 +38,13 @@ struct AppState {
     int M_4 = 180; // 0-180
     int M_5 = 90; // 0-180
 
-    // Dummy
+    // Dodatkowe
     int dummy = 127;
+    std::string nazwaAplikacji = "Chrobok Desktop";
+    std::string dataWydania = "09.01.2025";
+    std::string wersjaAplikacji = "1.0.1-beta";
+    std::string oNas = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa";
+    std::string oProjekcie = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa ";
+
 };
 

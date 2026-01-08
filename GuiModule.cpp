@@ -94,6 +94,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             if (ImGui::MenuItem("Wyjście", "Esc")) glfwSetWindowShouldClose(window, true);
             ImGui::EndMenu();
         }
+        ImGui::Spacing;
         if (ImGui::BeginMenu("Okna")) {
             ImGui::MenuItem("Sterowanie Ramienia", nullptr, &state.show_sterowanie_ramienia);
             ImGui::MenuItem("Parametry Ramienia", nullptr, &state.show_parametry_ramienia);
@@ -102,6 +103,13 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::MenuItem("Odczyt Lidar", nullptr, &state.show_odczyt_lidar);
             ImGui::Separator();
             ImGui::MenuItem("Ustawienia", nullptr, &state.show_ustawienia_aplikacji);
+            ImGui::EndMenu();
+        }
+        ImGui::Spacing;
+        if (ImGui::BeginMenu("Informacje")) {
+            ImGui::MenuItem("O Aplikacji", nullptr, &state.show_aboutApp_info);
+            ImGui::MenuItem("O Projekcie", nullptr, &state.show_aboutProject_info);
+            ImGui::MenuItem("O Nas", nullptr, &state.show_aboutUs_info);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -122,7 +130,28 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             if (ImGui::Button("Zerowanie Ramienia")) {Logic::ZerowanieRamienia(state); }
         ImGui::End();
     }
-
+    if (state.show_aboutApp_info) {
+        WymusGraniceOkna("O Aplikacji");
+        ImGui::Begin("O Aplikacji", &state.show_aboutApp_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            ImGui::Text("Nazwa: %s", state.nazwaAplikacji.c_str());
+            ImGui::Text("Data Wydania: %s", state.dataWydania.c_str());
+            ImGui::Text("Wersja: %s", state.wersjaAplikacji.c_str());
+        ImGui::End();
+    }
+    if (state.show_aboutUs_info) {
+        WymusGraniceOkna("O Nas");
+        ImGui::Begin("O Nas", &state.show_aboutUs_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            ImGui::Dummy(ImVec2(200, 0));
+            ImGui::TextWrapped("%s" ,state.oNas.c_str());
+        ImGui::End();
+    }
+    if (state.show_aboutProject_info) {
+        WymusGraniceOkna("O Projekcie");
+        ImGui::Begin("O Projekcie", &state.show_aboutProject_info,  ImGuiWindowFlags_NoCollapse);
+            ImGui::Dummy(ImVec2(200, 0));
+            ImGui::TextWrapped("%s" ,state.oProjekcie.c_str());
+        ImGui::End();
+    }
     if (state.show_parametry_ramienia) {
         WymusGraniceOkna("Parametry ramienia");
         ImGui::Begin("Parametry ramienia", &state.show_parametry_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
