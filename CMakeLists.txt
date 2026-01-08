@@ -35,6 +35,8 @@ set(IMGUI_SOURCES
         GuiModule.h
         GuiModule.cpp
         Icons.h
+        Logic.h
+        Logic.cpp
 )
 
 add_executable(Chrobok_desktop main.cpp ${IMGUI_SOURCES})

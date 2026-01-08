@@ -19,7 +19,20 @@ struct AppState {
     bool show_ustawienia_aplikacji = false;
     bool show_debug_info = false;
 
-    // Logika (dummy)
+    // Zmienne Logiczne
+    int opoznienieChwytaka = 3; // 0-5
+    int opoznienieServa = 10; // 0-20
+    int silaSkretu = 50; //0-100
+    int PWM = 128; // 0-255
+
+    // Zmienne Serv
+    int M_1 = 500; // 500-2380
+    int M_2 = 75; // 0-150
+    int M_3 = 30; // 0-180
+    int M_4 = 180; // 0-180
+    int M_5 = 90; // 0-180
+
+    // Dummy
     int dummy = 127;
 };
 

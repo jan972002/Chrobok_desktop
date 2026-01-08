@@ -4,6 +4,8 @@
 #include "imgui_internal.h"
 #include "ConfigManager.h"
 #include "Icons.h"
+#include "Logic.h"
+
 float GuiModule::menuBarHeight = 0.0f;
 void GuiModule::Setup(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
@@ -109,23 +111,26 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     if (state.show_sterowanie_ramienia) {
         WymusGraniceOkna("Sterowanie Ramienia");
         ImGui::Begin("Sterowanie Ramienia", &state.show_sterowanie_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SliderInt(" M_1 ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" M_2 ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" M_3 ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" M_4 ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" M_5 ", &state.dummy, 1, 255);
+            ImGui::SliderInt(" M_1 ", &state.M_1, 0, 2380);
+            ImGui::SliderInt(" M_2 ", &state.M_2, 0, 150);
+            ImGui::SliderInt(" M_3 ", &state.M_3, 0, 180);
+            ImGui::SliderInt(" M_4 ", &state.M_4, 0, 180);
+            ImGui::SliderInt(" M_5 ", &state.M_5, 0, 180);
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            if (ImGui::Button("Zerowanie Ramienia")) {Logic::ZerowanieRamienia(state); }
         ImGui::End();
     }
 
     if (state.show_parametry_ramienia) {
         WymusGraniceOkna("Parametry ramienia");
         ImGui::Begin("Parametry ramienia", &state.show_parametry_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SliderInt(" Opoznienie chwytaka ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" Opoznienie Serwa ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" Sila skretu ", &state.dummy, 1, 255);
-            ImGui::SliderInt(" Wartosc PWM ", &state.dummy, 1, 255);
+            ImGui::SliderInt(" Opoznienie chwytaka ", &state.opoznienieChwytaka, 0, 5);
+            ImGui::SliderInt(" Opoznienie Serwa ", &state.opoznienieServa, 0, 20);
+            ImGui::SliderInt(" Sila skretu ", &state.silaSkretu, 0, 100);
+            ImGui::SliderInt(" Wartosc PWM ", &state.PWM, 0, 255);
             ImGui::Separator();
-            if (ImGui::Button("Zerowanie Ramienia")) { /* logika */ }
         ImGui::End();
     }
 
