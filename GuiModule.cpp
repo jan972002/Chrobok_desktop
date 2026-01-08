@@ -4,7 +4,7 @@
 #include "imgui_internal.h"
 #include "ConfigManager.h"
 #include "Icons.h"
-
+float GuiModule::menuBarHeight = 0.0f;
 void GuiModule::Setup(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -17,7 +17,7 @@ void GuiModule::Setup(GLFWwindow* window) {
     ImFontConfig icons_config;
     icons_config.MergeMode = true;
     icons_config.PixelSnapH = true;
-    io.Fonts->AddFontFromFileTTF("fonts/icons_solid.otf", 16.0f, &icons_config, icons_ranges);
+    io.Fonts->AddFontFromFileTTF("fonts/icons_solid.otf", 20.0f, &icons_config, icons_ranges);
 
 
 
@@ -60,16 +60,13 @@ void GuiModule::WymusGraniceOkna(const char* name) {
         ImVec2 pos = window->Pos;
         ImVec2 size = window->Size;
         ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-        float menuBarHeight = 48.0f;
 
         ImVec2 nowaPos = pos;
         bool koryguj = false;
-
         if (nowaPos.x < 0) { nowaPos.x = 0; koryguj = true; }
         if (nowaPos.y < menuBarHeight) { nowaPos.y = menuBarHeight; koryguj = true; }
         if (nowaPos.x + size.x > displaySize.x) { nowaPos.x = displaySize.x - size.x; koryguj = true; }
         if (nowaPos.y + size.y > displaySize.y) { nowaPos.y = displaySize.y - size.y; koryguj = true; }
-
         if (koryguj) {
             ImGui::SetNextWindowPos(nowaPos, ImGuiCond_Always);
         }
@@ -87,6 +84,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
 
     // Menu
     if (ImGui::BeginMainMenuBar()) {
+        menuBarHeight = ImGui::GetWindowSize().y;
         if (ImGui::BeginMenu("Plik")) {
             if (ImGui::MenuItem(ICON_FA_SAVE " Zapisz", "Ctrl+S")) ConfigManager::Zapisz(state);
             if (ImGui::MenuItem(ICON_FA_LOAD " Wczytaj", "Ctrl+L")) ConfigManager::Laduj(state);

@@ -2,9 +2,7 @@
 #include "ConfigManager.h"
 #include <GLFW/glfw3.h>
 #include "imgui_impl_opengl3.h"
-void test() {
 
-}
 int main() {
     if (!glfwInit()) return -1;
 

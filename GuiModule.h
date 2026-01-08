@@ -11,6 +11,7 @@ public:
     static void Setup(GLFWwindow* window);
     static void RenderFrame(GLFWwindow* window, AppState& state, int monitorCount, GLFWmonitor** monitors);
     static void Shutdown();
+    static float menuBarHeight;
 private:
     static void WymusGraniceOkna(const char* name);
 };
