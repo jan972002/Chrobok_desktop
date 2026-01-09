@@ -4,6 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #include "Logic.h"
 #include <thread>
+#include"AppState.h"
 
 int main() {
     if (!glfwInit()) return -1;
@@ -24,7 +25,7 @@ int main() {
     GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Robot Control", NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSetWindowPos(window, mX, mY);
-    glfwSwapInterval(1);
+    glfwSwapInterval(state.vsync_state);
 
     GuiModule::Setup(window);
 

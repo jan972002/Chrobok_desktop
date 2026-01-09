@@ -25,6 +25,7 @@ struct AppState {
     bool show_aboutUs_info = false;
     bool show_aboutProject_info = false;
     bool show_console = true;
+    bool vsync_state = true;
 
     bool is_running = false;
 
@@ -61,5 +62,6 @@ struct AppState {
 
     std::vector<std::string> historia_komend;
     int max_logow = 5;
+
 };
 

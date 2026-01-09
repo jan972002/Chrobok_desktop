@@ -17,6 +17,7 @@ public:
         plik << "[Widocznosc]\n" << "Show_Ramie=" << s.show_sterowanie_ramienia << "\nShow_Param=" << s.show_parametry_ramienia << "\n";
         plik << "Show_Ruch=" << s.show_sterowanie_ruchem << "\nShow_Detekcja=" << s.show_detekcja_obrazu << "\n";
         plik << "Show_Lidar=" << s.show_odczyt_lidar << "\nShow_FPS=" << s.show_debug_info << "\n";
+        plik << "V-SYNC=" << s.vsync_state << "\n";
         plik.close();
     }
 
@@ -39,6 +40,7 @@ public:
             else if (ln.find("Show_Detekcja=") == 0) s.show_detekcja_obrazu = std::stoi(ln.substr(14));
             else if (ln.find("Show_Lidar=") == 0) s.show_odczyt_lidar = std::stoi(ln.substr(11));
             else if (ln.find("Show_FPS=") == 0) s.show_debug_info = std::stoi(ln.substr(9));
+            else if (ln.find("V-SYNC=") == 0) s.vsync_state = std::stoi(ln.substr(7));
         }
     }
 };

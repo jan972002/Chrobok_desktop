@@ -199,15 +199,17 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             const char* preview = glfwGetMonitorName(monitors[state.selected_monitor]);
             if (ImGui::BeginCombo("##Wybierz Monitor", preview)) {
                 for (int n = 0; n < monitorCount; n++) {
-                    if (ImGui::Selectable(glfwGetMonitorName(monitors[n]), state.selected_monitor == n)) {
+                    char buf[128];
+                    snprintf(buf, sizeof(buf), "%s (Monitor %d)##%d", glfwGetMonitorName(monitors[n]), n + 1, n);
+                    if (ImGui::Selectable(buf, state.selected_monitor == n)) {
                         state.selected_monitor = n;
                         const GLFWvidmode* m = glfwGetVideoMode(monitors[n]);
                         int x, y; glfwGetMonitorPos(monitors[n], &x, &y);
                         glfwSetWindowMonitor(window, NULL, x, y, m->width, m->height, m->refreshRate);
-                    }
                 }
-                ImGui::EndCombo();
             }
+            ImGui::EndCombo();
+        }
             ImGui::Separator();
             ImGui::Text(" Skala Interfejsu ");
             if (ImGui::Button("-", ImVec2(40, 40))) { if (state.skala_tekstu > 0.5f) state.skala_tekstu -= 0.1f; }
@@ -217,6 +219,9 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::ColorEdit3(" Kolor tła", state.bgColor, ImGuiColorEditFlags_NoInputs);
             ImGui::ColorEdit3(" Kolor czcionki", state.textColor, ImGuiColorEditFlags_NoInputs);
             ImGui::Checkbox(" Statystyki", &state.show_debug_info);
+            if (ImGui::Checkbox(" V-SYNC", &state.vsync_state)) {
+                glfwSwapInterval(state.vsync_state);
+            }
         ImGui::End();
     }
 
