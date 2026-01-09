@@ -99,7 +99,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::MenuItem("Sterowanie Ramienia", nullptr, &state.show_sterowanie_ramienia);
             ImGui::MenuItem("Parametry Ramienia", nullptr, &state.show_parametry_ramienia);
             ImGui::MenuItem("Sterowanie Ruchem", nullptr, &state.show_sterowanie_ruchem);
-            ImGui::MenuItem("Detekcja Obrazu", nullptr, &state.show_detekcja_obrazu);
+            ImGui::MenuItem("Obraz", nullptr, &state.show_detekcja_obrazu);
             ImGui::MenuItem("Odczyt Lidar", nullptr, &state.show_odczyt_lidar);
             ImGui::Separator();
             ImGui::MenuItem("Ustawienia", nullptr, &state.show_ustawienia_aplikacji);
@@ -227,10 +227,60 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
 
 
     if (state.show_detekcja_obrazu) {
-        WymusGraniceOkna("Detekcja Obrazu");
-        ImGui::Begin("Detekcja Obrazu", &state.show_detekcja_obrazu, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Tu wyląduje tekstura z OpenCV...");
-            ImGui::Dummy(ImVec2(400, 300));
+        WymusGraniceOkna("Obraz");
+        ImGuiWindow* window = ImGui::FindWindowByName("Obraz");
+        float aspect_ratio = 4.0f / 3.0f;
+        float v_overhead = 85.0f;
+        if (window) {
+            float current_w = window->Size.x;
+            float ideal_h = ((current_w - 20.0f) / aspect_ratio) + v_overhead;
+            ImGui::SetNextWindowSize(ImVec2(current_w, ideal_h));
+        }
+        ImGui::Begin("Obraz", &state.show_detekcja_obrazu, ImGuiWindowFlags_NoScrollbar);
+        float start_stop_w = 110.0f;
+        if (state.camera_is_running) {
+            if (ImGui::Button("STOP", ImVec2(start_stop_w, 0))) state.camera_is_running = false;
+        } else {
+            if (ImGui::Button("START", ImVec2(start_stop_w, 0))) state.camera_is_running = true;
+        }
+        ImGui::SameLine();
+
+        static std::vector<std::string> available_cams;
+        float refresh_w = 80.0f;
+        float spacing = ImGui::GetStyle().ItemSpacing.x;
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - refresh_w - spacing);
+        std::string preview = (state.selected_camera_index < available_cams.size()) ? available_cams[state.selected_camera_index] : "Wybierz...";
+        if (ImGui::BeginCombo("##source", preview.c_str())) {
+            for (int n = 0; n < (int)available_cams.size(); n++) {
+                if (ImGui::Selectable(available_cams[n].c_str(), state.selected_camera_index == n)) {
+                    state.selected_camera_index = n;
+                    state.camera_needs_reset = true;
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        if (available_cams.empty() || ImGui::Button(ICON_FA_REFRESH"##Odswiez", ImVec2(refresh_w, 0))) {
+            available_cams.clear();
+            cv::VideoCapture temp_cap;
+            for (int i = 0; i < 4; i++) {
+                if (temp_cap.open(i, cv::CAP_DSHOW)) {
+                    available_cams.push_back("Kamera " + std::to_string(i));
+                    temp_cap.release();
+                }
+            }
+            if (available_cams.empty()) available_cams.push_back("Brak kamer");
+        }
+        ImGui::Separator();
+        ImVec2 content_size = ImGui::GetContentRegionAvail();
+        if (state.camera_is_running && state.cameraTexture != 0) {
+            ImGui::Image((void*)(intptr_t)state.cameraTexture, content_size);
+        } else {
+            ImGui::BeginChild("Placeholder", content_size, true);
+                ImGui::SetCursorPos(ImVec2(content_size.x * 0.5f - 50, content_size.y * 0.5f - 10));
+                ImGui::Text("KAMERA WYŁĄCZONA");
+            ImGui::EndChild();
+        }
         ImGui::End();
     }
     if (state.show_odczyt_lidar) {

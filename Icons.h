@@ -15,3 +15,4 @@
 #define ICON_FA_EXCLAMATION "\xef\x81\xb1" //używać do info o awarii
 #define ICON_FA_LOAD "\xef\x82\x93"
 #define ICON_FA_SAVE "\xef\x83\x87"
+#define ICON_FA_REFRESH "\xef\x8b\xb1"

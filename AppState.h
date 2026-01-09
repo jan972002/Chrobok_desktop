@@ -5,6 +5,7 @@
 #include<string>
 #include<vector>
 #include<mutex>
+#include <opencv2/opencv.hpp>
 
 struct AppState {
     // Interfejs
@@ -64,5 +65,11 @@ struct AppState {
     std::vector<std::string> historia_komend;
     int max_logow = 5;
 
+    // Kamera
+    bool camera_is_running = false;
+    unsigned int cameraTexture = 0;
+    cv::VideoCapture cap;
+    int selected_camera_index = 0;
+    bool camera_needs_reset = false;
 };
 

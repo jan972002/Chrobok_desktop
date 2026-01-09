@@ -5,6 +5,9 @@
 #include "AppState.h"
 #include <iostream>
 #include<thread>
+#include <GL/gl.h>
+#include <vector>
+#include <string>
 
 void Logic::ZerowanieRamienia(AppState& state) {
     state.M_1 = 500;
@@ -96,3 +99,72 @@ void Logic::ParseCommand(AppState& state) {
     }
 }
 
+void Logic::CameraLoop(AppState& state) {
+    int current_device = -1;
+    while (state.is_running) {
+        if (state.camera_is_running) {
+            if (state.camera_needs_reset || current_device != state.selected_camera_index) {
+                state.cap.release();
+                current_device = state.selected_camera_index;
+                if (current_device >= 0) {
+                    state.cap.open(current_device);
+                }
+                state.camera_needs_reset = false;
+            }
+            if (!state.cap.isOpened()) {
+                if (current_device >= 0) {
+                    state.cap.open(current_device);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                continue;
+            }
+            cv::Mat frame;
+            if (state.cap.read(frame) && !frame.empty()) {
+                std::lock_guard<std::mutex> lock(frameMutex);
+                frame.copyTo(sharedFrame);
+            }
+        } else {
+            if (state.cap.isOpened()) {
+                state.cap.release();
+                current_device = -1;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+}
+
+void Logic::UpdateTexture(AppState& state) {
+    if (!state.camera_is_running) return;
+    cv::Mat frameToUpload;
+    {
+        std::lock_guard<std::mutex> lock(frameMutex);
+        if (sharedFrame.empty()) return;
+        sharedFrame.copyTo(frameToUpload);
+    }
+    cv::Mat rgbaFrame;
+    cv::cvtColor(frameToUpload, rgbaFrame, cv::COLOR_BGR2RGBA);
+    if (state.cameraTexture == 0) {
+        glGenTextures(1, &state.cameraTexture);
+    }
+    glBindTexture(GL_TEXTURE_2D, state.cameraTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rgbaFrame.cols, rgbaFrame.rows, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, rgbaFrame.data);
+}
+
+std::vector<std::string> Logic::GetAvailableCameras() {
+    std::vector<std::string> devices;
+    cv::VideoCapture temp_cap;
+    for (int i = 0; i < 5; i++) {
+        temp_cap.open(i, cv::CAP_DSHOW);
+        if (temp_cap.isOpened()) {
+            devices.push_back("Kamera " + std::to_string(i));
+            temp_cap.release();
+        }
+    }
+    if (devices.empty()) {
+        devices.push_back("Brak dostępnych kamer");
+    }
+    return devices;
+}

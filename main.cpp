@@ -4,7 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #include "Logic.h"
 #include <thread>
-#include"AppState.h"
+#include "AppState.h"
 
 int main() {
     if (!glfwInit()) return -1;
@@ -33,9 +33,14 @@ int main() {
     std::thread logicThread(&Logic::ParseCommand, &logic, std::ref(state));
     logicThread.detach();
 
+    std::thread cameraThread(&Logic::CameraLoop, &logic, std::ref(state));
+    cameraThread.detach();
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
+
+        logic.UpdateTexture(state);
 
         GuiModule::RenderFrame(window, state, monitorCount, monitors);
 
@@ -47,7 +52,9 @@ int main() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
+
     state.is_running = false;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ConfigManager::Zapisz(state);
     GuiModule::Shutdown();
@@ -55,4 +62,3 @@ int main() {
     glfwTerminate();
     return 0;
 }
-
