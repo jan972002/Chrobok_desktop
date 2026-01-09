@@ -56,7 +56,8 @@ struct AppState {
     int dummy = 127;
     std::string nazwaAplikacji = "Chrobok Desktop";
     std::string dataWydania = "09.01.2025";
-    std::string wersjaAplikacji = "1.0.1-beta";
+    std::string wersjaAplikacji = "1.0.2-beta";
+
     std::string oNas = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa";
     std::string oProjekcie = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa ";
 

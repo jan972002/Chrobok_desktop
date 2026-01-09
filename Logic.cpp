@@ -95,3 +95,4 @@ void Logic::ParseCommand(AppState& state) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
+

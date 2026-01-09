@@ -248,7 +248,11 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::Text("> %s", log.c_str());
         }
         ImGui::Separator();
-        ImGui::Text("Wydajnosc: %.3f ms (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        ImGui::Text("%s", renderer);
+        ImGui::SameLine();
+        ImGui::Text("| %.3f ms | %.1f FPS", 1000.0f / io.Framerate, io.Framerate);
+        ImGui::SameLine();
         ImGui::End();
     }
 
