@@ -8,6 +8,7 @@
 #include <GL/gl.h>
 #include <vector>
 #include <string>
+#include <opencv2/core/ocl.hpp>
 
 void Logic::ZerowanieRamienia(AppState& state) {
     state.M_1 = 500;

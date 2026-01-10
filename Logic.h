@@ -8,7 +8,7 @@
 #include <mutex>
 #include <vector>
 #include <string>
-
+#include <opencv2/core/ocl.hpp>
 
 class Logic{
 private:
