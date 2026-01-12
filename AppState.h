@@ -71,5 +71,8 @@ struct AppState {
     cv::VideoCapture cap;
     int selected_camera_index = 0;
     bool camera_needs_reset = false;
+
+    std::string portName = "";
+    bool is_usb_connected = false;
 };
 

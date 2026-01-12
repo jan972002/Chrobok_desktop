@@ -42,7 +42,7 @@ int main() {
 
         logic.UpdateTexture(state);
 
-        GuiModule::RenderFrame(window, state, monitorCount, monitors);
+        GuiModule::RenderFrame(window, state, monitorCount, monitors, logic);
 
         int dw, dh; glfwGetFramebufferSize(window, &dw, &dh);
         glViewport(0, 0, dw, dh);

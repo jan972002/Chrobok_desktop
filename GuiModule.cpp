@@ -75,7 +75,7 @@ void GuiModule::WymusGraniceOkna(const char* name) {
     }
 }
 
-void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCount, GLFWmonitor** monitors) {
+void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCount, GLFWmonitor** monitors, Logic& logic) {
     ImGuiIO& io = ImGui::GetIO();
     io.FontGlobalScale = state.skala_tekstu;
     ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(state.textColor[0], state.textColor[1], state.textColor[2], 1.0f);
@@ -222,6 +222,39 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             if (ImGui::Checkbox(" V-SYNC", &state.vsync_state)) {
                 glfwSwapInterval(state.vsync_state);
             }
+            if (ImGui::Checkbox(" Polacz z robotem", &state.is_usb_connected)) {
+                if (state.is_usb_connected) {
+                    if (!logic.ConnectUSB(state)) {
+                        state.is_usb_connected = false;
+                    }
+                }
+                else {
+                    logic.DisconnectUSB(state);
+                }
+            }
+            ImGui::SameLine();
+            static std::vector<std::string> porty;
+            if (porty.empty()) {
+                porty = logic.GetAvailableComPorts();
+            }
+            const char* current_port = state.portName.c_str();
+            ImGui::SetNextItemWidth(150.0f);
+            if (ImGui::BeginCombo("##WybierzPortCombo", current_port)) {
+                for (int n = 0; n < (int)porty.size(); n++) {
+                    bool is_selected = (state.portName == porty[n]);
+                    if (ImGui::Selectable(porty[n].c_str(), is_selected)) {
+                        state.portName = porty[n];
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_REFRESH"##Odsniez Listy")) {
+            porty = logic.GetAvailableComPorts();
+        }
         ImGui::End();
     }
 

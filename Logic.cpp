@@ -9,7 +9,73 @@
 #include <vector>
 #include <string>
 #include <opencv2/core/ocl.hpp>
+#include <windows.h>
+#include <string>
 
+bool Logic::ConnectUSB(AppState& state) {
+    std::string portName = state.portName;
+    std::string fullPortName = "\\\\.\\" + portName;
+
+    // Próba otwarcia portu
+    hSerial = CreateFileA(
+        fullPortName.c_str(),
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    if (hSerial == INVALID_HANDLE_VALUE) {
+        std::cout << "[USB]: Nie udalo sie otworzyc " << portName << " (Blad: " << GetLastError() << ")" << std::endl;
+        state.is_usb_connected = false;
+        return false;
+    }
+    DCB dcbSerialParams = { 0 };
+    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+    if (GetCommState(hSerial, &dcbSerialParams)) {
+        dcbSerialParams.BaudRate = CBR_115200;
+        dcbSerialParams.ByteSize = 8;
+        dcbSerialParams.StopBits = ONESTOPBIT;
+        dcbSerialParams.Parity = NOPARITY;
+
+        if (!SetCommState(hSerial, &dcbSerialParams)) {
+            std::cout << "[USB]: Blad ustawiania parametrow portu." << std::endl;
+            CloseHandle(hSerial);
+            hSerial = INVALID_HANDLE_VALUE;
+            return false;
+        }
+    }
+    COMMTIMEOUTS timeouts = { 0 };
+    timeouts.ReadIntervalTimeout = 50;
+    timeouts.ReadTotalTimeoutConstant = 50;
+    timeouts.ReadTotalTimeoutMultiplier = 10;
+    timeouts.WriteTotalTimeoutConstant = 50;
+    timeouts.WriteTotalTimeoutMultiplier = 10;
+    SetCommTimeouts(hSerial, &timeouts);
+
+    std::cout << "[USB]: Polaczono pomyslnie z " << portName << std::endl;
+    state.is_usb_connected = true;
+    return true;
+}
+
+void Logic::WriteToUSB(const std::string& data) {
+    if (hSerial == INVALID_HANDLE_VALUE) return;
+    DWORD bytesSent;
+    if (!WriteFile(hSerial, data.c_str(), (DWORD)data.length(), &bytesSent, NULL)) {
+        std::cout << "[BŁĄD USB]: Utracono połączenie z portem." << std::endl;
+        CloseHandle(hSerial);
+        hSerial = INVALID_HANDLE_VALUE;
+    }
+}
+void Logic::DisconnectUSB(AppState& state) {
+    if (hSerial != INVALID_HANDLE_VALUE) {
+        CloseHandle(hSerial);
+        hSerial = INVALID_HANDLE_VALUE;
+    }
+    state.is_usb_connected = false;
+}
 void Logic::ZerowanieRamienia(AppState& state) {
     state.M_1 = 500;
     state.M_2 = 75;
@@ -30,8 +96,33 @@ void Logic::SendCommand(AppState& state, std::string cmd) {
     std::string packet = cmd + "\n";
     AddLog(state, cmd);
     std::cout << "[WYSLANO]: " << packet;
+
+    // DO WYSYLU PO USB, ZMIENIC NA SIECIOWYM
+    if (hSerial != INVALID_HANDLE_VALUE) {
+        WriteToUSB(packet);
+    }
 }
 
+std::vector<std::string> Logic::GetAvailableComPorts() {
+    std::vector<std::string> ports;
+    HKEY hKey;
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        char valueName[256];
+        char portName[256];
+        DWORD valueNameLen, portNameLen, type;
+
+        for (DWORD i = 0; ; ++i) {
+            valueNameLen = 256;
+            portNameLen = 256;
+            if (RegEnumValueA(hKey, i, valueName, &valueNameLen, NULL, &type, (LPBYTE)portName, &portNameLen) != ERROR_SUCCESS)
+                break;
+            ports.push_back(std::string(portName));
+        }
+        RegCloseKey(hKey);
+    }
+    if (ports.empty()) ports.push_back("Brak portów");
+    return ports;
+}
 void Logic::ParseCommand(AppState& state) {
 
     bool last_przod = false;

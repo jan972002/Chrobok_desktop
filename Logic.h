@@ -9,11 +9,16 @@
 #include <vector>
 #include <string>
 #include <opencv2/core/ocl.hpp>
+#include <windows.h>
+#include <string>
 
 class Logic{
 private:
     std::mutex frameMutex;
     cv::Mat sharedFrame;
+    HANDLE hSerial = INVALID_HANDLE_VALUE;
+    bool serialOpened = false;
+
 public:
     static void ZerowanieRamienia(AppState&);
     void SendCommand(AppState& state, std::string cmd);
@@ -23,4 +28,9 @@ public:
     void CameraLoop(AppState& state);
     void UpdateTexture(AppState& state);
     std::vector<std::string> GetAvailableCameras();
+
+    void WriteToUSB(const std::string& data);
+    bool ConnectUSB(AppState& state);
+    void DisconnectUSB(AppState& state);
+    std::vector<std::string> GetAvailableComPorts();
 };
