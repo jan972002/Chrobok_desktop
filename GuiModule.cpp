@@ -251,10 +251,20 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
                 }
                 ImGui::EndCombo();
             }
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_REFRESH"##Odsniez Listy")) {
-            porty = logic.GetAvailableComPorts();
-        }
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_REFRESH"##Odsniez Listy")) {
+                porty = logic.GetAvailableComPorts();
+            }
+            if (ImGui::Checkbox(" Polacz z siecia", &state.is_network_connected)) {
+                if (state.is_network_connected) {
+                    logic.ConnectToNetwork();
+                    state.is_network_connected = true;
+                }
+                else {
+                    logic.DisconnectNetwork();
+                    state.is_network_connected = false;
+                }
+            }
         ImGui::End();
     }
 

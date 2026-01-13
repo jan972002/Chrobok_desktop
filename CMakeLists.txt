@@ -59,6 +59,7 @@ if(WIN32)
         glfw
         opengl32
         ${OpenCV_LIBS}
+        ws2_32
     )
 else()
     target_link_libraries(Chrobok_desktop PRIVATE

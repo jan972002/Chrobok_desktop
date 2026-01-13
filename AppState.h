@@ -74,5 +74,6 @@ struct AppState {
 
     std::string portName = "";
     bool is_usb_connected = false;
+    bool is_network_connected = false;
 };
 

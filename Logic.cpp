@@ -9,8 +9,57 @@
 #include <vector>
 #include <string>
 #include <opencv2/core/ocl.hpp>
+#include <winsock2.h>
 #include <windows.h>
-#include <string>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
+void Logic::ConnectToNetwork() {
+    if (networkInitialized) {
+        closesocket(sock);
+        WSACleanup();
+    }
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        std::cerr << "Błąd WSAStartup" << std::endl;
+        return;
+    }
+    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock == INVALID_SOCKET) {
+        std::cerr << "Nie można utworzyć socketu" << std::endl;
+        WSACleanup();
+        return;
+    }
+    robotAddr.sin_family = AF_INET;
+    robotAddr.sin_port = htons(4210);
+    inet_pton(AF_INET, "192.168.4.1", &robotAddr.sin_addr);
+    networkInitialized = true;
+    std::cout << "[NETWORK]: Polaczono z robotem (UDP Ready)" << std::endl;
+}
+
+void Logic::SendToNetwork(std::string packet) {
+    if (!networkInitialized) {
+        return;
+    }
+    int result = sendto(sock, packet.c_str(), (int)packet.length(), 0,
+                        (sockaddr*)&robotAddr, sizeof(robotAddr));
+    if (result == SOCKET_ERROR) {
+        std::cerr << "Blad wysylki UDP: " << WSAGetLastError() << std::endl;
+    }
+}
+void Logic::DisconnectNetwork() {
+    if (networkInitialized) {
+        if (sock != INVALID_SOCKET) {
+            closesocket(sock);
+            sock = INVALID_SOCKET;
+        }
+        WSACleanup();
+        networkInitialized = false;
+        std::cout << "[NETWORK]: Rozłączono pomyślnie i zwolniono zasoby." << std::endl;
+    }
+}
+
 
 bool Logic::ConnectUSB(AppState& state) {
     std::string portName = state.portName;
@@ -101,6 +150,7 @@ void Logic::SendCommand(AppState& state, std::string cmd) {
     if (hSerial != INVALID_HANDLE_VALUE) {
         WriteToUSB(packet);
     }
+    SendToNetwork(packet);
 }
 
 std::vector<std::string> Logic::GetAvailableComPorts() {

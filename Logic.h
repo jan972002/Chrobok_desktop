@@ -9,8 +9,10 @@
 #include <vector>
 #include <string>
 #include <opencv2/core/ocl.hpp>
+#include <winsock2.h>
 #include <windows.h>
-#include <string>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 
 class Logic{
 private:
@@ -18,6 +20,9 @@ private:
     cv::Mat sharedFrame;
     HANDLE hSerial = INVALID_HANDLE_VALUE;
     bool serialOpened = false;
+    SOCKET sock = INVALID_SOCKET;
+    sockaddr_in robotAddr;
+    bool networkInitialized = false;
 
 public:
     static void ZerowanieRamienia(AppState&);
@@ -29,8 +34,14 @@ public:
     void UpdateTexture(AppState& state);
     std::vector<std::string> GetAvailableCameras();
 
+    // USB
     void WriteToUSB(const std::string& data);
     bool ConnectUSB(AppState& state);
     void DisconnectUSB(AppState& state);
     std::vector<std::string> GetAvailableComPorts();
+
+    //SIEĆ
+    void ConnectToNetwork();
+    void SendToNetwork(std::string packet);
+    void DisconnectNetwork();
 };
