@@ -50,7 +50,7 @@ struct AppState {
     int M_1 = 500; // 500-2380
     int M_2 = 75; // 0-150
     int M_3 = 30; // 0-180
-    int M_4 = 180; // 0-180
+    int M_4 = 34; // 0-180
     int M_5 = 90; // 0-180
 
     // Dodatkowe
@@ -75,5 +75,8 @@ struct AppState {
     std::string portName = "";
     bool is_usb_connected = false;
     bool is_network_connected = false;
+    std::string robot_ip = "192.168.4.1";
+    int robot_port = 4210;
+    std::string SSID = "Sprawdzam...";
 };
 

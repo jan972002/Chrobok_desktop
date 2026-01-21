@@ -75,7 +75,6 @@ if(WIN32)
         "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
         "${MINGW_BIN_DIR}/libstdc++-6.dll"
         "${MINGW_BIN_DIR}/libwinpthread-1.dll"
-        # Ścieżka do Twojego nowego DLL OpenCV
         "${OpenCV_DIR}/x64/mingw/bin/libopencv_world4100.dll"
         "${OpenCV_DIR}/x64/mingw/bin/opencv_videoio_ffmpeg4100_64.dll"
     )

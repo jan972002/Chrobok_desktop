@@ -13,9 +13,23 @@
 #include <windows.h>
 #include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib")
+void Logic::getSSID(AppState& state) {
+    char buffer[128];
+    std::string tempSsid = "Disconnected";
+    FILE* pipe = _popen("for /f \"tokens=2 delims=: \" %a in ('netsh wlan show interfaces ^| findstr /C:\" SSID\"') do @echo %a", "r");
+    if (pipe) {
+        if (fgets(buffer, 128, pipe)) {
+            tempSsid = buffer;
+            while (!tempSsid.empty() && (tempSsid.back() == '\n' || tempSsid.back() == '\r' || tempSsid.back() == ' ')) {
+                tempSsid.pop_back();
+            }
+        }
+        _pclose(pipe);
+    }
+    state.SSID = tempSsid;
+}
 
-void Logic::ConnectToNetwork() {
+void Logic::ConnectToNetwork(AppState& state) {
     if (networkInitialized) {
         closesocket(sock);
         WSACleanup();
@@ -32,8 +46,8 @@ void Logic::ConnectToNetwork() {
         return;
     }
     robotAddr.sin_family = AF_INET;
-    robotAddr.sin_port = htons(4210);
-    inet_pton(AF_INET, "192.168.4.1", &robotAddr.sin_addr);
+    robotAddr.sin_port = htons(state.robot_port);
+    inet_pton(AF_INET, state.robot_ip.c_str(), &robotAddr.sin_addr);
     networkInitialized = true;
     std::cout << "[NETWORK]: Polaczono z robotem (UDP Ready)" << std::endl;
 }
@@ -129,7 +143,7 @@ void Logic::ZerowanieRamienia(AppState& state) {
     state.M_1 = 500;
     state.M_2 = 75;
     state.M_3 = 30;
-    state.M_4 = 180;
+    state.M_4 = 34;
     state.M_5 = 90;
     state.zerowanie_ramienia = true;
 }
@@ -195,7 +209,7 @@ void Logic::ParseCommand(AppState& state) {
     while (state.is_running) {
         if (state.ruch_przod != last_przod) {
             last_przod = state.ruch_przod;
-            last_przod ? SendCommand(state,"Przod") : SendCommand(state,"STOP");
+            last_przod ? SendCommand(state,"Przod\n") : SendCommand(state,"STOP");
         }
         if (state.ruch_tyl != last_tyl) {
             last_tyl = state.ruch_tyl;

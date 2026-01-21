@@ -12,7 +12,6 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
 
 class Logic{
 private:
@@ -41,7 +40,8 @@ public:
     std::vector<std::string> GetAvailableComPorts();
 
     //SIEĆ
-    void ConnectToNetwork();
+    void ConnectToNetwork(AppState& state);
     void SendToNetwork(std::string packet);
     void DisconnectNetwork();
+    void getSSID(AppState& state);
 };

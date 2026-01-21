@@ -122,7 +122,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::SliderInt(" M_1 ", &state.M_1, 0, 2380);
             ImGui::SliderInt(" M_2 ", &state.M_2, 0, 150);
             ImGui::SliderInt(" M_3 ", &state.M_3, 0, 180);
-            ImGui::SliderInt(" M_4 ", &state.M_4, 0, 180);
+            ImGui::SliderInt(" M_4 ", &state.M_4, 34, 154);
             ImGui::SliderInt(" M_5 ", &state.M_5, 0, 180);
             ImGui::Spacing();
             ImGui::Separator();
@@ -257,7 +257,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             }
             if (ImGui::Checkbox(" Polacz z siecia", &state.is_network_connected)) {
                 if (state.is_network_connected) {
-                    logic.ConnectToNetwork();
+                    logic.ConnectToNetwork(state);
                     state.is_network_connected = true;
                 }
                 else {
@@ -265,6 +265,13 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
                     state.is_network_connected = false;
                 }
             }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted("Wymaga połączenia z siecią WiFi");
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Szukaj sieci z nazwą 'Chrobok...'");
+                ImGui::EndTooltip();
+            }
+            ImGui::Text("Aktywna Sieć: %s", state.SSID.c_str());
         ImGui::End();
     }
 

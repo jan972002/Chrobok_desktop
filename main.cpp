@@ -12,7 +12,7 @@ int main() {
     AppState state;
     Logic logic;
     ConfigManager::Laduj(state);
-
+    logic.getSSID(state);
     int monitorCount;
     GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
     if (state.selected_monitor >= monitorCount) state.selected_monitor = 0;
