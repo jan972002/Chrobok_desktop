@@ -78,5 +78,6 @@ struct AppState {
     std::string robot_ip = "192.168.4.1";
     int robot_port = 4210;
     std::string SSID = "Sprawdzam...";
+    std::string adres_rtsp = "rtsp://127.0.0.1:8554/test";
 };
 

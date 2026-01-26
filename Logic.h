@@ -31,7 +31,6 @@ public:
 
     void CameraLoop(AppState& state);
     void UpdateTexture(AppState& state);
-    std::vector<std::string> GetAvailableCameras();
 
     // USB
     void WriteToUSB(const std::string& data);

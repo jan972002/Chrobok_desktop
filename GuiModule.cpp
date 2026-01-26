@@ -297,18 +297,6 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
 
         static std::vector<std::string> available_cams;
         float refresh_w = 80.0f;
-        float spacing = ImGui::GetStyle().ItemSpacing.x;
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - refresh_w - spacing);
-        std::string preview = (state.selected_camera_index < available_cams.size()) ? available_cams[state.selected_camera_index] : "Wybierz...";
-        if (ImGui::BeginCombo("##source", preview.c_str())) {
-            for (int n = 0; n < (int)available_cams.size(); n++) {
-                if (ImGui::Selectable(available_cams[n].c_str(), state.selected_camera_index == n)) {
-                    state.selected_camera_index = n;
-                    state.camera_needs_reset = true;
-                }
-            }
-            ImGui::EndCombo();
-        }
         ImGui::SameLine();
         if (available_cams.empty() || ImGui::Button(ICON_FA_REFRESH"##Odswiez", ImVec2(refresh_w, 0))) {
             available_cams.clear();

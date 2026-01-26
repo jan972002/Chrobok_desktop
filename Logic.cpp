@@ -256,33 +256,29 @@ void Logic::ParseCommand(AppState& state) {
 }
 
 void Logic::CameraLoop(AppState& state) {
-    int current_device = -1;
     while (state.is_running) {
         if (state.camera_is_running) {
-            if (state.camera_needs_reset || current_device != state.selected_camera_index) {
-                state.cap.release();
-                current_device = state.selected_camera_index;
-                if (current_device >= 0) {
-                    state.cap.open(current_device);
-                }
-                state.camera_needs_reset = false;
-            }
             if (!state.cap.isOpened()) {
-                if (current_device >= 0) {
-                    state.cap.open(current_device);
+                _putenv("OPENCV_FFMPEG_CAPTURE_OPTIONS=rtsp_transport;udp|fflags;nobuffer|flags;low_delay");
+                state.cap.open(state.adres_rtsp, cv::CAP_FFMPEG);
+                state.cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
+
+                if (!state.cap.isOpened()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                continue;
             }
             cv::Mat frame;
-            if (state.cap.read(frame) && !frame.empty()) {
-                std::lock_guard<std::mutex> lock(frameMutex);
-                frame.copyTo(sharedFrame);
+            if (state.cap.grab()) {
+                state.cap.retrieve(frame);
+                if (!frame.empty()) {
+                    std::lock_guard<std::mutex> lock(frameMutex);
+                    frame.copyTo(sharedFrame);
+                }
             }
         } else {
             if (state.cap.isOpened()) {
                 state.cap.release();
-                current_device = -1;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -307,20 +303,4 @@ void Logic::UpdateTexture(AppState& state) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rgbaFrame.cols, rgbaFrame.rows, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, rgbaFrame.data);
-}
-
-std::vector<std::string> Logic::GetAvailableCameras() {
-    std::vector<std::string> devices;
-    cv::VideoCapture temp_cap;
-    for (int i = 0; i < 5; i++) {
-        temp_cap.open(i, cv::CAP_DSHOW);
-        if (temp_cap.isOpened()) {
-            devices.push_back("Kamera " + std::to_string(i));
-            temp_cap.release();
-        }
-    }
-    if (devices.empty()) {
-        devices.push_back("Brak dostępnych kamer");
-    }
-    return devices;
 }
