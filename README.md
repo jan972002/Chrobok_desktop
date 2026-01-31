@@ -7,7 +7,9 @@ Entire codebase is included with **open source** access. Feel free to use it for
 Code will be updated to make communication with various Chrobok robots possible. 
 
 If you need help with your project contact me [here](https://www.linkedin.com/in/jan-nalepa-997443262/)
+
 For server site code visit this [link](https://github.com/jan972002/Chrobok-Mk.2-server-site-)
+
 For model files visit this [site](https://github.com/jan972002/Chrobok_desktop/tree/master/Ramie)
 
 Suspension system and traction mechanics files will not be added here. If you wish to view or use them, feel free to contact me.
