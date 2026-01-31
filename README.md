@@ -1,0 +1,15 @@
+**Hello!**
+
+This project if for you to modify and use for **educational** reasons! 
+Every piece of this project was made enitrelly by me and will be updated in near future.
+
+Entire codebase is included with **open source** acces. Feel free to use it for your projects. 
+Code will be updated to make communication with various Chrobor robots possible. 
+
+If you need help with your project contact me [here](https://www.linkedin.com/in/jan-nalepa-997443262/)
+For server site code visit this [link](https://github.com/jan972002/Chrobok-Mk.2-server-site-)
+
+<img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_074650049.png" />
+
+
+<img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_074710472.png" />
