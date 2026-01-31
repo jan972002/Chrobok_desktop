@@ -12,7 +12,16 @@ For model files visit this [site](https://github.com/jan972002/Chrobok_desktop/t
 
 Suspension system and traction mechanics files will not be added here. If you wish to view or use them, feel free to contact me.
 
+**GUI view** - at some point I will add english translation
+
+<img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_080647039.png" />
+
+**Model view from different angles**
+
 <img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_074650049.png" />
 
 
 <img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_074710472.png" />
+
+
+
