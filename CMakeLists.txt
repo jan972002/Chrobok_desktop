@@ -51,6 +51,7 @@ target_include_directories(Chrobok_desktop PRIVATE
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${OpenCV_INCLUDE_DIRS}
+    "D:/Biblioteki_C++/OpenCV/4.10.0/include"
 )
 
 # Łączenie bibliotek

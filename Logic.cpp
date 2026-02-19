@@ -141,7 +141,7 @@ void Logic::DisconnectUSB(AppState& state) {
 }
 void Logic::ZerowanieRamienia(AppState& state) {
     state.M_1 = 500;
-    state.M_2 = 75;
+    state.M_2 = 90;
     state.M_3 = 30;
     state.M_4 = 34;
     state.M_5 = 90;

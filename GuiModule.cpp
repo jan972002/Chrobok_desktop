@@ -119,8 +119,8 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     if (state.show_sterowanie_ramienia) {
         WymusGraniceOkna("Sterowanie Ramienia");
         ImGui::Begin("Sterowanie Ramienia", &state.show_sterowanie_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SliderInt(" M_1 ", &state.M_1, 0, 2380);
-            ImGui::SliderInt(" M_2 ", &state.M_2, 0, 150);
+            ImGui::SliderInt(" M_1 ", &state.M_1, 500, 2380);
+            ImGui::SliderInt(" M_2 ", &state.M_2, 0, 180);
             ImGui::SliderInt(" M_3 ", &state.M_3, 0, 180);
             ImGui::SliderInt(" M_4 ", &state.M_4, 34, 154);
             ImGui::SliderInt(" M_5 ", &state.M_5, 0, 180);

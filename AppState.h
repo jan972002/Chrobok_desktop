@@ -48,7 +48,7 @@ struct AppState {
 
     // Zmienne Serv
     int M_1 = 500; // 500-2380
-    int M_2 = 75; // 0-150
+    int M_2 = 90; // 0-180
     int M_3 = 30; // 0-180
     int M_4 = 34; // 0-180
     int M_5 = 90; // 0-180
