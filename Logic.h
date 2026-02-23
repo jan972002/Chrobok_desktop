@@ -12,6 +12,8 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
+#include <math.h>
+#include <algorithm>
 
 class Logic{
 private:
@@ -44,4 +46,17 @@ public:
     void SendToNetwork(std::string packet);
     void DisconnectNetwork();
     void getSSID(AppState& state);
+
+
+    ///////////////////////////////////////////
+    ///                                     ///
+    ///             KINEMATYKA              ///
+    ///                                     ///
+    ///////////////////////////////////////////
+
+    float CalculateDSide(AppState& state);
+    float CalculateLokiec(AppState& state);
+    float CalculatePodstawa(AppState& state);
+    void CalculateKinematics(AppState& state);
+
 };

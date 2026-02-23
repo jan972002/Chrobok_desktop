@@ -97,6 +97,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::Spacing;
         if (ImGui::BeginMenu("Okna")) {
             ImGui::MenuItem("Sterowanie Ramienia", nullptr, &state.show_sterowanie_ramienia);
+            ImGui::MenuItem("Sterowanie Kinematyka", nullptr, &state.show_sterowanie_kinematyka);
             ImGui::MenuItem("Parametry Ramienia", nullptr, &state.show_parametry_ramienia);
             ImGui::MenuItem("Sterowanie Ruchem", nullptr, &state.show_sterowanie_ruchem);
             ImGui::MenuItem("Obraz", nullptr, &state.show_detekcja_obrazu);
@@ -128,6 +129,188 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::Separator();
             ImGui::Spacing();
             if (ImGui::Button("Zerowanie Ramienia")) {Logic::ZerowanieRamienia(state); }
+        ImGui::End();
+    }
+    if (state.show_sterowanie_kinematyka) {
+        WymusGraniceOkna("Sterowanie Kinematyka");
+        ImGui::Begin("Sterowanie Kinematyka", &state.show_sterowanie_kinematyka, ImGuiWindowFlags_AlwaysAutoResize);
+        float s = state.skala_tekstu;
+        float padSize = 300.0f * s;
+        ImVec2 p0 = ImGui::GetCursorScreenPos();
+        ImVec2 sz = ImVec2(padSize, padSize);
+        ImVec2 p1 = ImVec2(p0.x + sz.x, p0.y + sz.y);
+        float yMax = state.dlugoscPodstawy + state.dlugoscPrzedramienia + 5;
+        float yMin = -10.0f;
+        float yRange = yMax - yMin;
+        float xMax = state.dlugoscPodstawy + state.dlugoscPrzedramienia + 5;
+        float yZeroRatio = yMax / yRange;
+        float yZeroPos = p0.y + (sz.y * yZeroRatio);
+        float maxZasieg = (float)(state.dlugoscPodstawy + state.dlugoscPrzedramienia);
+        float unitToPxX = sz.x / xMax;
+        float unitToPxY = sz.y / yRange;
+        float promienPxX = maxZasieg * unitToPxX;
+        float promienPxY = maxZasieg * unitToPxY;
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        // Tlo
+        draw_list->AddRectFilled(p0, p1, IM_COL32(60, 20, 20, 255));
+        draw_list->AddRect(p0, p1, IM_COL32(100, 100, 100, 255));
+        ImVec2 srodekZasiegu = ImVec2(p0.x, yZeroPos);
+        draw_list->PushClipRect(p0, p1, true);
+
+        // Obszar roboczy I zasieg
+        draw_list->PathLineTo(srodekZasiegu);
+        for (float a = -1.5708f; a <= 1.5708f; a += 0.05f) {
+            draw_list->PathLineTo(ImVec2(
+                srodekZasiegu.x + cosf(a) * promienPxX,
+                srodekZasiegu.y + sinf(a) * promienPxY
+            ));
+        }
+        draw_list->PathFillConvex(IM_COL32(30, 30, 30, 255));
+        for (float a = -1.5708f; a <= 1.5708f; a += 0.05f) {
+            draw_list->PathLineTo(ImVec2(
+                srodekZasiegu.x + cosf(a) * promienPxX,
+                srodekZasiegu.y + sinf(a) * promienPxY
+            ));
+        }
+        draw_list->PathStroke(IM_COL32(255, 50, 50, 200), 0, 2.0f * s);
+        draw_list->PopClipRect();
+        draw_list->AddLine(ImVec2(p0.x, yZeroPos), ImVec2(p1.x, yZeroPos), IM_COL32(70, 70, 70, 255), 1.0f);
+
+        // Lokiec
+        float L1 = (float)state.dlugoscPodstawy;
+        float L2 = (float)state.dlugoscPrzedramienia;
+        float d2 = (state.wspolrzednaX * state.wspolrzednaX) + (state.wspolrzednaY * state.wspolrzednaY);
+        float d = std::sqrt(d2);
+        float gamma = std::atan2(state.wspolrzednaY, state.wspolrzednaX);
+        float argBeta = (L1 * L1 + d2 - L2 * L2) / (2.0f * L1 * d);
+        float beta = std::acos(std::clamp(argBeta, -1.0f, 1.0f));
+        float elbowX = L1 * cosf(gamma + beta);
+        float elbowY = L1 * sinf(gamma + beta);
+
+        ImVec2 pBase  = srodekZasiegu;
+        ImVec2 pElbow = ImVec2(p0.x + elbowX * unitToPxX, p0.y + (yMax - elbowY) * unitToPxY);
+        ImVec2 pEnd   = ImVec2(p0.x + state.wspolrzednaX * unitToPxX, p0.y + (yMax - state.wspolrzednaY) * unitToPxY);
+        float grubosc = 4.0f * s;
+        ImU32 colArm = IM_COL32(200, 200, 200, 255);
+        draw_list->AddLine(pBase, pElbow, colArm, grubosc);
+        draw_list->AddLine(pElbow, pEnd, colArm, grubosc);
+        draw_list->AddCircleFilled(pElbow, 5.0f * s, IM_COL32(80, 80, 80, 255));
+
+        // Trojkat
+        ImVec2 t1 = ImVec2(p0.x + (0.0f * unitToPxX), p0.y + (yMax - 0.0f) * unitToPxY);
+        ImVec2 t2 = ImVec2(p0.x + (5.0f * unitToPxX), p0.y + (yMax - (-5.0f)) * unitToPxY);
+        ImVec2 t3 = ImVec2(p0.x + (0.0f * unitToPxX), p0.y + (yMax - (-5.0f)) * unitToPxY);
+        draw_list->AddTriangleFilled(t1, t2, t3, IM_COL32(255, 165, 0, 60));
+        draw_list->AddTriangle(t1, t2, t3, IM_COL32(255, 165, 0, 200), 2.0f * s);
+
+        // Prostokat
+        ImVec2 rec0 = ImVec2(p0.x + (0.0f * unitToPxX),  p0.y + (yMax - (-5.0f)) * unitToPxY);
+        ImVec2 rec1 = ImVec2(p0.x + (15.0f * unitToPxX), p0.y + (yMax - (-10.0f)) * unitToPxY);
+        draw_list->AddRectFilled(rec0, rec1, IM_COL32(255, 165, 0, 60));
+        draw_list->AddRect(rec0, rec1, IM_COL32(255, 165, 0, 200), 0.0f, 0, 2.0f * s);
+
+        // Joystick
+        ImGui::InvisibleButton("##joystick", sz);
+        if (ImGui::IsItemActive()) {
+            ImVec2 m = ImGui::GetIO().MousePos;
+            float tx = ((m.x - p0.x) / sz.x) * xMax;
+            float ty = yMax - ((m.y - p0.y) / sz.y) * yRange;
+            tx = std::clamp(tx, 0.0f, xMax);
+            ty = std::clamp(ty, yMin, yMax);
+
+            // Kolizja kolo
+            float distSq = (tx * tx) + (ty * ty);
+            if (distSq > maxZasieg * maxZasieg) {
+                float dist = std::sqrt(distSq);
+                tx = (tx / dist) * maxZasieg;
+                ty = (ty / dist) * maxZasieg;
+            }
+
+            // Kolizja prostokat
+            if (tx <= 15.0f && ty <= -5.0f) {
+                if ((15.0f - tx) < (ty - (-5.0f))) tx = 15.01f;
+                else ty = -4.99f;
+            }
+            // Kolizja trojkat
+            if (tx <= 5.0f && ty <= 0.0f && ty >= -tx) {
+                if (tx < -ty) tx = -ty + 0.01f;
+                else ty = -tx + 0.01f;
+            }
+            state.wspolrzednaX = tx;
+            state.wspolrzednaY = ty;
+            logic.CalculateKinematics(state);
+        }
+        ImGui::Dummy(ImVec2(padSize, 5.0f * s));
+        // Kursor
+        float dotX = p0.x + (state.wspolrzednaX * unitToPxX);
+        float dotY = p0.y + (yMax - state.wspolrzednaY) * unitToPxY;
+        draw_list->AddCircleFilled(ImVec2(dotX, dotY), 8.0f * s, IM_COL32(66, 150, 250, 255));
+
+        // Suwak lukowy
+        ImGui::Spacing();
+        float arcRadius = 60.0f * s;
+        float arcThickness = 12.0f * s;
+        ImVec2 arcCenter = ImVec2(p0.x + sz.x / 2.0f, ImGui::GetCursorScreenPos().y + arcRadius + 10.0f * s);
+        ImGui::SetCursorScreenPos(ImVec2(arcCenter.x - arcRadius - arcThickness, arcCenter.y - arcRadius - arcThickness));
+        ImGui::InvisibleButton("##arc_slider", ImVec2((arcRadius + arcThickness) * 2, arcRadius + arcThickness));
+
+        // Tekst
+        char buf[32];
+        sprintf(buf, "%d°", state.M_5);
+        ImVec2 textSize = ImGui::CalcTextSize(buf);
+        ImVec2 textPos = ImVec2(
+            arcCenter.x - (textSize.x / 2.0f),
+            arcCenter.y - (arcRadius * 0.4f)
+        );
+        draw_list->AddText(textPos, IM_COL32(255, 255, 255, 255), buf);
+
+        //Luk
+        if (ImGui::IsItemActive()) {
+            ImVec2 m = ImGui::GetIO().MousePos;
+            float dx = m.x - arcCenter.x;
+            float dy = m.y - arcCenter.y;
+            if (dy >= 0) {
+                state.M_5 = (dx > 0) ? 180 : 0;
+            } else {
+                float angle = atan2f(dy, dx);
+                float t = (angle + 3.1415f) / 3.1415f;
+                state.M_5 = (int)(std::clamp(t, 0.0f, 1.0f) * 180.0f);
+            }
+        }
+
+        // Rysowanie polkola
+        draw_list->PathArcTo(arcCenter, arcRadius, -3.1415f, 0.0f, 32);
+        draw_list->PathStroke(IM_COL32(50, 50, 50, 255), 0, arcThickness);
+        float currentAngle = -3.1415f + (state.M_5 / 180.0f) * 3.1415f;
+        ImVec2 handlePos = ImVec2(arcCenter.x + cosf(currentAngle) * arcRadius, arcCenter.y + sinf(currentAngle) * arcRadius);
+        draw_list->AddCircleFilled(handlePos, (arcThickness / 2.0f) + 2.0f * s, IM_COL32(255, 255, 255, 255));
+        ImGui::SetCursorScreenPos(ImVec2(p0.x, arcCenter.y + 10.0f * s));
+        ImGui::Dummy(ImVec2(padSize, 5.0f * s));
+
+
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::SetNextItemWidth(padSize);
+        ImGui::PushID("nadgarstek");
+        ImGui::SliderInt("##", &state.M_2, 0, 180);
+        ImGui::PopID();
+        ImGui::Spacing();
+        if (ImGui::Button("Otworz", ImVec2(padSize/2 - 5, 50))) {
+            state.M_1 = 500;
+        };
+        ImGui::SameLine();
+        if (ImGui::Button( "Zamknij", ImVec2(padSize/2 - 5, 50))) {
+            state.M_1 = 2380;
+        };
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Text("Pozycja: X: %.1f | Y: %.1f", state.wspolrzednaX, state.wspolrzednaY);
+        if (ImGui::Button("Reset", ImVec2(padSize, 40 * s))) {
+            Logic::ZerowanieRamienia(state);
+        }
+
         ImGui::End();
     }
     if (state.show_aboutApp_info) {
@@ -212,9 +395,9 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         }
             ImGui::Separator();
             ImGui::Text(" Skala Interfejsu ");
-            if (ImGui::Button("-", ImVec2(40, 40))) { if (state.skala_tekstu > 0.5f) state.skala_tekstu -= 0.1f; }
+            if (ImGui::Button("-", ImVec2(20 * state.skala_tekstu, 20 * state.skala_tekstu))) { if (state.skala_tekstu > 0.5f) state.skala_tekstu -= 0.1f; }
             ImGui::SameLine(); ImGui::Text(" %.1f ", state.skala_tekstu);
-            ImGui::SameLine(); if (ImGui::Button("+", ImVec2(40, 40))) { if (state.skala_tekstu < 3.5f) state.skala_tekstu += 0.1f; }
+            ImGui::SameLine(); if (ImGui::Button("+", ImVec2(20 * state.skala_tekstu, 20 * state.skala_tekstu))) { if (state.skala_tekstu < 3.5f) state.skala_tekstu += 0.1f; }
 
             ImGui::ColorEdit3(" Kolor tła", state.bgColor, ImGuiColorEditFlags_NoInputs);
             ImGui::ColorEdit3(" Kolor czcionki", state.textColor, ImGuiColorEditFlags_NoInputs);

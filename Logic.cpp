@@ -12,6 +12,8 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
+#include <math.h>
+#include <algorithm>
 
 void Logic::getSSID(AppState& state) {
     char buffer[128];
@@ -145,6 +147,8 @@ void Logic::ZerowanieRamienia(AppState& state) {
     state.M_3 = 30;
     state.M_4 = 34;
     state.M_5 = 90;
+    state.wspolrzednaX = 7;
+    state.wspolrzednaY = 13;
     state.zerowanie_ramienia = true;
 }
 
@@ -323,4 +327,54 @@ std::vector<std::string> Logic::GetAvailableCameras() {
         devices.push_back("Brak dostępnych kamer");
     }
     return devices;
+}
+
+
+///////////////////////////////////////////
+///                                     ///
+///             KINEMATYKA              ///
+///                                     ///
+///////////////////////////////////////////
+
+
+float Logic::CalculateDSide(AppState& state) {
+    float bokD = std::sqrt((state.wspolrzednaX * state.wspolrzednaX) + (state.wspolrzednaY * state.wspolrzednaY));
+    return bokD;
+}
+
+float Logic::CalculateLokiec(AppState& state) {
+    float d = CalculateDSide(state);
+    float arg = (((state.dlugoscPrzedramienia * state.dlugoscPrzedramienia) + (state.dlugoscPodstawy * state.dlugoscPodstawy) - (d * d)) / (2 * state.dlugoscPrzedramienia * state.dlugoscPodstawy));
+    float alfa_wewn = ((std::acos(std::clamp(arg, -1.0f, 1.0f))) * (180.0f / 3.1415926535f));
+
+    if (state.wspolrzednaX >= 0) {
+        return std::round(alfa_wewn);
+    }
+    else {
+        return std::round(360.0f - alfa_wewn);
+    }
+}
+
+float Logic::CalculatePodstawa(AppState& state) {
+    float bokD = CalculateDSide(state);
+    float gamma = std::atan2(state.wspolrzednaY, state.wspolrzednaX) * (180.0f / 3.1415926535f);
+    float arg = ((state.dlugoscPodstawy * state.dlugoscPodstawy) + (bokD * bokD) - (state.dlugoscPrzedramienia * state.dlugoscPrzedramienia)) / (2 * state.dlugoscPodstawy * bokD);
+    float beta = std::acos(std::clamp(arg, -1.0f, 1.0f)) * (180.0f / 3.1415926535f);
+    float kat_koncowy;
+    if (state.wspolrzednaX >= 0) {
+        kat_koncowy = gamma + beta;
+    }
+    else {
+        kat_koncowy = gamma - beta;
+    }
+    return std::round(kat_koncowy);
+}
+
+void Logic::CalculateKinematics(AppState& state) {
+    float katPodstawy = CalculatePodstawa(state);
+    float katLokiec = CalculateLokiec(state);
+
+    state.M_4 = static_cast<int>(120 - katPodstawy + state.offsetPodstawy);
+    state.M_3 = static_cast<int>(katLokiec);
+    std::cout << "[IK]: Przeliczono X:" << state.wspolrzednaX << " Y:" << state.wspolrzednaY << " Na katy: M4:" << state.M_4 << " M3:" << state.M_3 << std::endl;
 }
