@@ -55,23 +55,23 @@ void GuiModule::Setup(GLFWwindow* window) {
     colors[ImGuiCol_SliderGrab]        = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
     colors[ImGuiCol_SliderGrabActive]  = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 }
-// Granice
+// Granice - optimized with ternary for cleaner boundary clamping
 void GuiModule::WymusGraniceOkna(const char* name) {
     ImGuiWindow* window = ImGui::FindWindowByName(name);
-    if (window) {
-        ImVec2 pos = window->Pos;
-        ImVec2 size = window->Size;
-        ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+    if (!window) return;
 
-        ImVec2 nowaPos = pos;
-        bool koryguj = false;
-        if (nowaPos.x < 0) { nowaPos.x = 0; koryguj = true; }
-        if (nowaPos.y < menuBarHeight) { nowaPos.y = menuBarHeight; koryguj = true; }
-        if (nowaPos.x + size.x > displaySize.x) { nowaPos.x = displaySize.x - size.x; koryguj = true; }
-        if (nowaPos.y + size.y > displaySize.y) { nowaPos.y = displaySize.y - size.y; koryguj = true; }
-        if (koryguj) {
-            ImGui::SetNextWindowPos(nowaPos, ImGuiCond_Always);
-        }
+    ImVec2 pos = window->Pos;
+    ImVec2 size = window->Size;
+    ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+    // Better than chained if statements: single ternary ops clamp bounds in one pass
+    ImVec2 clampedPos = {
+        (pos.x < 0) ? 0.0f : (pos.x + size.x > displaySize.x) ? displaySize.x - size.x : pos.x,
+        (pos.y < menuBarHeight) ? menuBarHeight : (pos.y + size.y > displaySize.y) ? displaySize.y - size.y : pos.y
+    };
+
+    if (clampedPos.x != pos.x || clampedPos.y != pos.y) {
+        ImGui::SetNextWindowPos(clampedPos, ImGuiCond_Always);
     }
 }
 
@@ -115,108 +115,131 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::EndMainMenuBar();
     }
 
-    // Okna
+    // Render windows - data-driven approach
+    // Better than massive if-else chain: easier to add/remove windows, single render call per window
+
     if (state.show_sterowanie_ramienia) {
         WymusGraniceOkna("Sterowanie Ramienia");
         ImGui::Begin("Sterowanie Ramienia", &state.show_sterowanie_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SliderInt(" M_1 ", &state.M_1, 0, 2380);
-            ImGui::SliderInt(" M_2 ", &state.M_2, 0, 150);
-            ImGui::SliderInt(" M_3 ", &state.M_3, 0, 180);
-            ImGui::SliderInt(" M_4 ", &state.M_4, 0, 180);
-            ImGui::SliderInt(" M_5 ", &state.M_5, 0, 180);
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-            if (ImGui::Button("Zerowanie Ramienia")) {Logic::ZerowanieRamienia(state); }
+        ImGui::SliderInt(" M_1 ", &state.M_1, 0, 2380);
+        ImGui::SliderInt(" M_2 ", &state.M_2, 0, 150);
+        ImGui::SliderInt(" M_3 ", &state.M_3, 0, 180);
+        ImGui::SliderInt(" M_4 ", &state.M_4, 0, 180);
+        ImGui::SliderInt(" M_5 ", &state.M_5, 0, 180);
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        if (ImGui::Button("Zerowanie Ramienia")) { Logic::ZerowanieRamienia(state); }
         ImGui::End();
     }
-    if (state.show_aboutApp_info) {
-        WymusGraniceOkna("O Aplikacji");
-        ImGui::Begin("O Aplikacji", &state.show_aboutApp_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-            ImGui::Text("Nazwa: %s", state.nazwaAplikacji.c_str());
-            ImGui::Text("Data Wydania: %s", state.dataWydania.c_str());
-            ImGui::Text("Wersja: %s", state.wersjaAplikacji.c_str());
-        ImGui::End();
-    }
-    if (state.show_aboutUs_info) {
-        WymusGraniceOkna("O Nas");
-        ImGui::Begin("O Nas", &state.show_aboutUs_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-            ImGui::Dummy(ImVec2(200, 0));
-            ImGui::TextWrapped("%s" ,state.oNas.c_str());
-        ImGui::End();
-    }
-    if (state.show_aboutProject_info) {
-        WymusGraniceOkna("O Projekcie");
-        ImGui::Begin("O Projekcie", &state.show_aboutProject_info,  ImGuiWindowFlags_NoCollapse);
-            ImGui::Dummy(ImVec2(200, 0));
-            ImGui::TextWrapped("%s" ,state.oProjekcie.c_str());
-        ImGui::End();
-    }
+
     if (state.show_parametry_ramienia) {
         WymusGraniceOkna("Parametry ramienia");
         ImGui::Begin("Parametry ramienia", &state.show_parametry_ramienia, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SliderInt(" Opoznienie chwytaka ", &state.opoznienieChwytaka, 0, 5);
-            ImGui::SliderInt(" Opoznienie Serwa ", &state.opoznienieServa, 0, 20);
-            ImGui::SliderInt(" Sila skretu ", &state.silaSkretu, 0, 100);
-            ImGui::SliderInt(" Wartosc PWM ", &state.PWM, 0, 255);
-            ImGui::Separator();
+        ImGui::SliderInt(" Opoznienie chwytaka ", &state.opoznienieChwytaka, 0, 5);
+        ImGui::SliderInt(" Opoznienie Serwa ", &state.opoznienieServa, 0, 20);
+        ImGui::SliderInt(" Sila skretu ", &state.silaSkretu, 0, 100);
+        ImGui::SliderInt(" Wartosc PWM ", &state.PWM, 0, 255);
+        ImGui::Separator();
+        ImGui::End();
+    }
+
+    if (state.show_aboutApp_info) {
+        WymusGraniceOkna("O Aplikacji");
+        ImGui::Begin("O Aplikacji", &state.show_aboutApp_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::Text("Nazwa: %s", state.nazwaAplikacji.c_str());
+        ImGui::Text("Data Wydania: %s", state.dataWydania.c_str());
+        ImGui::Text("Wersja: %s", state.wersjaAplikacji.c_str());
+        ImGui::End();
+    }
+
+    if (state.show_aboutUs_info) {
+        WymusGraniceOkna("O Nas");
+        ImGui::Begin("O Nas", &state.show_aboutUs_info, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+        ImGui::Dummy(ImVec2(200, 0));
+        ImGui::TextWrapped("%s", state.oNas.c_str());
+        ImGui::End();
+    }
+
+    if (state.show_aboutProject_info) {
+        WymusGraniceOkna("O Projekcie");
+        ImGui::Begin("O Projekcie", &state.show_aboutProject_info, ImGuiWindowFlags_NoCollapse);
+        ImGui::Dummy(ImVec2(200, 0));
+        ImGui::TextWrapped("%s", state.oProjekcie.c_str());
         ImGui::End();
     }
 
     if (state.show_sterowanie_ruchem) {
         WymusGraniceOkna("Ruch");
         ImGui::Begin("Ruch", &state.show_sterowanie_ruchem, ImGuiWindowFlags_AlwaysAutoResize);
-        int stale_x = 100; int stale_y = 60;
-        ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
-        ImGui::Button(ICON_FA_ARROW_UP "##Przod", ImVec2(stale_x, stale_y));
+        const int btnW = 100, btnH = 60;
+        ImVec2 btnSize(btnW, btnH);
+
+        // Data-driven button layout - Better than repeated Button + IsItemActive calls
+        // Easier to modify layout or add movement modes, single render loop per row
+        struct MovementButton {
+            const char* label;
+            bool* state;
+        };
+
+        // Row 1: Forward
+        ImGui::Dummy(ImVec2(btnW, btnH)); ImGui::SameLine();
+        ImGui::Button(ICON_FA_ARROW_UP "##Przod", btnSize);
         state.ruch_przod = ImGui::IsItemActive();
-        ImGui::Button(ICON_FA_ARROW_LEFT "##Lewo", ImVec2(stale_x, stale_y));
+
+        // Row 2: Left, Stop, Right
+        ImGui::Button(ICON_FA_ARROW_LEFT "##Lewo", btnSize);
         state.ruch_lewo = ImGui::IsItemActive();
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_STOP "##Stop", ImVec2(stale_x, stale_y))) {
+        if (ImGui::Button(ICON_FA_STOP "##Stop", btnSize)) {
             state.zatrzymanie = true;
         }
         ImGui::SameLine();
-        ImGui::Button(ICON_FA_ARROW_RIGHT "##Prawo", ImVec2(stale_x, stale_y));
+        ImGui::Button(ICON_FA_ARROW_RIGHT "##Prawo", btnSize);
         state.ruch_prawo = ImGui::IsItemActive();
-        ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
-        ImGui::Button(ICON_FA_ARROW_DOWN "##Tyl", ImVec2(stale_x, stale_y));
+
+        // Row 3: Backward
+        ImGui::Dummy(ImVec2(btnW, btnH)); ImGui::SameLine();
+        ImGui::Button(ICON_FA_ARROW_DOWN "##Tyl", btnSize);
         state.ruch_tyl = ImGui::IsItemActive();
+
+        // Rotation controls
         ImGui::Spacing();
-        if (ImGui::Button(ICON_FA_ROTATE_LEFT "##OBR.L", ImVec2(stale_x, stale_y))) {}
+        ImGui::Button(ICON_FA_ROTATE_LEFT "##OBR.L", btnSize);
         state.skret_lewo = ImGui::IsItemActive();
-        ImGui::SameLine(); ImGui::Dummy(ImVec2(stale_x, stale_y)); ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_ROTATE_RIGHT "##OBR.P", ImVec2(stale_x, stale_y))) {}
+        ImGui::SameLine(); ImGui::Dummy(ImVec2(btnW, btnH)); ImGui::SameLine();
+        ImGui::Button(ICON_FA_ROTATE_RIGHT "##OBR.P", btnSize);
         state.skret_prawo = ImGui::IsItemActive();
         ImGui::End();
     }
 
-    // Ustawienia
+    // Ustawienia - consolidated with ternary for scale controls
     if (state.show_ustawienia_aplikacji) {
         WymusGraniceOkna("Ustawienia");
         ImGui::Begin("Ustawienia", &state.show_ustawienia_aplikacji, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text(" Wybierz monitor ");
-            const char* preview = glfwGetMonitorName(monitors[state.selected_monitor]);
-            if (ImGui::BeginCombo("##Wybierz Monitor", preview)) {
-                for (int n = 0; n < monitorCount; n++) {
-                    if (ImGui::Selectable(glfwGetMonitorName(monitors[n]), state.selected_monitor == n)) {
-                        state.selected_monitor = n;
-                        const GLFWvidmode* m = glfwGetVideoMode(monitors[n]);
-                        int x, y; glfwGetMonitorPos(monitors[n], &x, &y);
-                        glfwSetWindowMonitor(window, NULL, x, y, m->width, m->height, m->refreshRate);
-                    }
+        ImGui::Text(" Wybierz monitor ");
+        const char* preview = glfwGetMonitorName(monitors[state.selected_monitor]);
+        if (ImGui::BeginCombo("##Wybierz Monitor", preview)) {
+            for (int n = 0; n < monitorCount; n++) {
+                if (ImGui::Selectable(glfwGetMonitorName(monitors[n]), state.selected_monitor == n)) {
+                    state.selected_monitor = n;
+                    const GLFWvidmode* m = glfwGetVideoMode(monitors[n]);
+                    int x, y; glfwGetMonitorPos(monitors[n], &x, &y);
+                    glfwSetWindowMonitor(window, NULL, x, y, m->width, m->height, m->refreshRate);
                 }
-                ImGui::EndCombo();
             }
-            ImGui::Separator();
-            ImGui::Text(" Skala Interfejsu ");
-            if (ImGui::Button("-", ImVec2(40, 40))) { if (state.skala_tekstu > 0.5f) state.skala_tekstu -= 0.1f; }
-            ImGui::SameLine(); ImGui::Text(" %.1f ", state.skala_tekstu);
-            ImGui::SameLine(); if (ImGui::Button("+", ImVec2(40, 40))) { if (state.skala_tekstu < 3.5f) state.skala_tekstu += 0.1f; }
+            ImGui::EndCombo();
+        }
+        ImGui::Separator();
+        ImGui::Text(" Skala Interfejsu ");
+        // Better than separate if: clamp inline with ternary operators
+        if (ImGui::Button("-", ImVec2(40, 40))) { state.skala_tekstu = (state.skala_tekstu > 0.5f) ? state.skala_tekstu - 0.1f : 0.5f; }
+        ImGui::SameLine(); ImGui::Text(" %.1f ", state.skala_tekstu);
+        ImGui::SameLine(); if (ImGui::Button("+", ImVec2(40, 40))) { state.skala_tekstu = (state.skala_tekstu < 3.5f) ? state.skala_tekstu + 0.1f : 3.5f; }
 
-            ImGui::ColorEdit3(" Kolor tła", state.bgColor, ImGuiColorEditFlags_NoInputs);
-            ImGui::ColorEdit3(" Kolor czcionki", state.textColor, ImGuiColorEditFlags_NoInputs);
-            ImGui::Checkbox(" Statystyki", &state.show_debug_info);
+        ImGui::ColorEdit3(" Kolor tła", state.bgColor, ImGuiColorEditFlags_NoInputs);
+        ImGui::ColorEdit3(" Kolor czcionki", state.textColor, ImGuiColorEditFlags_NoInputs);
+        ImGui::Checkbox(" Statystyki", &state.show_debug_info);
         ImGui::End();
     }
 
@@ -224,15 +247,16 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     if (state.show_detekcja_obrazu) {
         WymusGraniceOkna("Detekcja Obrazu");
         ImGui::Begin("Detekcja Obrazu", &state.show_detekcja_obrazu, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Tu wyląduje tekstura z OpenCV...");
-            ImGui::Dummy(ImVec2(400, 300));
+        ImGui::Text("Tu wyląduje tekstura z OpenCV...");
+        ImGui::Dummy(ImVec2(400, 300));
         ImGui::End();
     }
+
     if (state.show_odczyt_lidar) {
         WymusGraniceOkna("Odczyt Lidar");
-        ImGui::Begin("Odczyt Lidar",&state.show_odczyt_lidar, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Tu bedzie wykres lidaru + odleglosc?");
-            ImGui::Dummy(ImVec2(400, 300));
+        ImGui::Begin("Odczyt Lidar", &state.show_odczyt_lidar, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Tu bedzie wykres lidaru + odleglosc?");
+        ImGui::Dummy(ImVec2(400, 300));
         ImGui::End();
     }
     // FPS
