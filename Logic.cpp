@@ -1,5 +1,5 @@
 //
-// Created by jan97 on 08.01.2026.
+// Stworzono przez jan97 dnia 08.01.2026 — magiczny moduł logiki, uwu
 //
 #include "Logic.h"
 #include "AppState.h"
@@ -15,22 +15,22 @@ void Logic::ZerowanieRamienia(AppState& state) {
     state.zerowanie_ramienia = true;
 }
 
-void Logic::AddLog(AppState& state, std::string cmd) {
+void Logic::AddLog(AppState& state, const std::string& cmd) {
     state.historia_komend.push_back(cmd);
     if (state.historia_komend.size() > state.max_logow) {
         state.historia_komend.erase(state.historia_komend.begin());
     }
 }
 
-void Logic::SendCommand(AppState& state, std::string cmd) {
-    std::string packet = cmd + "\n";
+void Logic::SendCommand(AppState& state, const std::string& cmd) {
+    const std::string packet = cmd + "\n";
     AddLog(state, cmd);
     std::cout << "[WYSLANO]: " << packet;
 }
 
 void Logic::ParseCommand(AppState& state) {
-    // Use struct arrays instead of 15 individual bool/int variables
-    // Better than individual vars: easier to scale, loop-based processing, less memory fragmentation
+    // Używamy tablic struktur zamiast 15 pojedynczych zmiennych bool/int, bo jesteśmy eleganccy uwu
+    // Dzięki temu łatwiej skalować, przetwarzać w pętli i mniej bałaganu w pamięci, owo
     struct BoolCmd {
         bool* current;
         bool* last;
@@ -65,16 +65,16 @@ void Logic::ParseCommand(AppState& state) {
     };
 
     while (state.is_running) {
-        // Process all boolean movement commands in a loop
-        // Better than if-else chain: O(n) vs repeated comparisons, easier to add new movements
-        for (auto& cmd : boolCmds) {
-            if (*cmd.current != *cmd.last) {
-                *cmd.last = *cmd.current;
-                SendCommand(state, *cmd.current ? cmd.onCmd : "STOP");
+        // Przetwarzamy wszystkie polecenia ruchu (bool) w pętli — ładnie i efektywnie, uwu
+        // Lepsze niż łańcuch if-else: O(n) i prościej dodać nowe ruchy, nya
+        for (auto&[current, last, onCmd] : boolCmds) {
+            if (*current != *last) {
+                *last = *current;
+                SendCommand(state, *current ? onCmd : "STOP");
             }
         }
 
-        // One-off stop commands
+        // Jednorazowe komendy STOP/zerowanie — robią "pomruczanko" i wracamy dalej, owo
         if (state.zatrzymanie) {
             SendCommand(state, "STOP");
             state.zatrzymanie = false;
@@ -84,8 +84,8 @@ void Logic::ParseCommand(AppState& state) {
             state.zerowanie_ramienia = false;
         }
 
-        // Process all integer motor commands in a loop
-        // Better than if-else chain: eliminates 9 repeated condition checks
+        // Przetwarzamy wszystkie komendy numeryczne (silniki) w pętli — less noise, more kawaii, uwu
+        // Eliminujemy powtarzające się sprawdzenia, jest schludniej, nya
         for (auto& cmd : intCmds) {
             if (*cmd.current != *cmd.last) {
                 *cmd.last = *cmd.current;
@@ -96,7 +96,7 @@ void Logic::ParseCommand(AppState& state) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 
-    // Cleanup
-    for (auto& cmd : boolCmds) delete cmd.last;
-    for (auto& cmd : intCmds) delete cmd.last;
+    // Sprzątanko na koniec — usuwamy tymczasowe wskaźniki, bo lubimy porządek owo
+    for (const auto& cmd : boolCmds) delete cmd.last;
+    for (const auto& cmd : intCmds) delete cmd.last;
 }

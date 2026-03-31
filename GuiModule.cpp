@@ -2,6 +2,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_internal.h"
+#include <fstream>
+#include <vector>
+#include <string>
 #include "ConfigManager.h"
 #include "Icons.h"
 #include "Logic.h"
@@ -12,24 +15,44 @@ void GuiModule::Setup(GLFWwindow* window) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-    static const ImWchar ranges[] = { 0x0020, 0x00FF, 0x0100, 0x017F, 0 };
-    io.Fonts->AddFontFromFileTTF("fonts/tahoma.ttf", 20.0f, nullptr, ranges);
+    // Spróbuj załadować przyjazną czcionkę systemową na różnych platformach, uwu~
+    // Jeśli nic nie znajdziemy, użyjemy domyślnej czcionki ImGui, owo ~nya
+    std::vector<std::string> candidates;
+#if defined(_WIN32)
+    candidates = { "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/Tahoma.ttf" };
+#elif defined(__APPLE__)
+    candidates = { "/Library/Fonts/Arial.ttf", "/System/Library/Fonts/Helvetica.ttc", "/System/Library/Fonts/Supplemental/Arial.ttf" };
+#else
+    candidates = { "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "/usr/share/fonts/truetype/freefont/FreeSans.ttf" };
+#endif
 
-    static const ImWchar icons_ranges[] = { 0xf000, 0xf8ff, 0 };
-    ImFontConfig icons_config;
-    icons_config.MergeMode = true;
-    icons_config.PixelSnapH = true;
-    io.Fonts->AddFontFromFileTTF("fonts/icons_solid.otf", 20.0f, &icons_config, icons_ranges);
+    // Użyj zakresu glifów Latin + Latin Extended-A, żeby obsłużyć polskie znaki diakrytyczne (ąćęłńóśźż), uwu
+    static const ImWchar glyphRanges[] = { 0x0020, 0x00FF, 0x0100, 0x017F, 0 };
+    bool loaded = false;
+    for (const auto& path : candidates) {
+        std::ifstream f(path);
+        if (!f.good()) continue;
+        f.close();
+        if (io.Fonts->AddFontFromFileTTF(path.c_str(), 16.0f, nullptr, glyphRanges)) {
+            loaded = true;
+            break;
+        }
+    }
+    if (!loaded) {
+                // Nie znaleziono żadnej czcionki systemowej, więc fallbackujemy na domyślną czcionkę ImGui, so kawaii owo
+                io.Fonts->AddFontDefault();
+    }
 
 
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
+    // Ustawienia stylu okien, bo muszą być cute i zaokrąglone, uwu
     ImGui::GetStyle().WindowRounding = 8.0f;
     ImGui::GetStyle().FrameRounding = 5.0f;
     ImGuiStyle& style = ImGui::GetStyle();
-    // Style okien
+    // Styl okien, słodko i przytulnie owo
     style.WindowRounding = 7.0f;
     style.FrameRounding = 4.0f;
     style.GrabRounding = 4.0f;
@@ -55,17 +78,17 @@ void GuiModule::Setup(GLFWwindow* window) {
     colors[ImGuiCol_SliderGrab]        = ImVec4(0.24f, 0.52f, 0.88f, 1.00f);
     colors[ImGuiCol_SliderGrabActive]  = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 }
-// Granice - optimized with ternary for cleaner boundary clamping
+    // Granice okienka — ściskamy po ładnemu z pomocą ternary, nya~
 void GuiModule::WymusGraniceOkna(const char* name) {
-    ImGuiWindow* window = ImGui::FindWindowByName(name);
+    const ImGuiWindow* window = ImGui::FindWindowByName(name);
     if (!window) return;
 
-    ImVec2 pos = window->Pos;
-    ImVec2 size = window->Size;
-    ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+    const ImVec2 pos = window->Pos;
+    const ImVec2 size = window->Size;
+    const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
-    // Better than chained if statements: single ternary ops clamp bounds in one pass
-    ImVec2 clampedPos = {
+    // Lepsze niż milion ifów: pojedyncze ternary ogarniają granice za jednym zamachem, uwu
+    const ImVec2 clampedPos = {
         (pos.x < 0) ? 0.0f : (pos.x + size.x > displaySize.x) ? displaySize.x - size.x : pos.x,
         (pos.y < menuBarHeight) ? menuBarHeight : (pos.y + size.y > displaySize.y) ? displaySize.y - size.y : pos.y
     };
@@ -84,7 +107,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Menu
+    // Menu główne (tu są te wszystkie przyciski, bardzo adorable owo)
     if (ImGui::BeginMainMenuBar()) {
         menuBarHeight = ImGui::GetWindowSize().y;
         if (ImGui::BeginMenu("Plik")) {
@@ -94,7 +117,6 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             if (ImGui::MenuItem("Wyjście", "Esc")) glfwSetWindowShouldClose(window, true);
             ImGui::EndMenu();
         }
-        ImGui::Spacing;
         if (ImGui::BeginMenu("Okna")) {
             ImGui::MenuItem("Sterowanie Ramienia", nullptr, &state.show_sterowanie_ramienia);
             ImGui::MenuItem("Parametry Ramienia", nullptr, &state.show_parametry_ramienia);
@@ -105,7 +127,6 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
             ImGui::MenuItem("Ustawienia", nullptr, &state.show_ustawienia_aplikacji);
             ImGui::EndMenu();
         }
-        ImGui::Spacing;
         if (ImGui::BeginMenu("Informacje")) {
             ImGui::MenuItem("O Aplikacji", nullptr, &state.show_aboutApp_info);
             ImGui::MenuItem("O Projekcie", nullptr, &state.show_aboutProject_info);
@@ -115,8 +136,8 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::EndMainMenuBar();
     }
 
-    // Render windows - data-driven approach
-    // Better than massive if-else chain: easier to add/remove windows, single render call per window
+    // Renderowanie okienek — podejście data-driven, bo jestem leniwy i lubię tidy code, uwu
+    // Łatwiej dodawać/usuwac okienka niż w gigantycznym łańcuchu if-else, nya
 
     if (state.show_sterowanie_ramienia) {
         WymusGraniceOkna("Sterowanie Ramienia");
@@ -172,11 +193,11 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
     if (state.show_sterowanie_ruchem) {
         WymusGraniceOkna("Ruch");
         ImGui::Begin("Ruch", &state.show_sterowanie_ruchem, ImGuiWindowFlags_AlwaysAutoResize);
-        const int btnW = 100, btnH = 60;
-        ImVec2 btnSize(btnW, btnH);
+        constexpr int btnW = 100, btnH = 60;
+        constexpr ImVec2 btnSize(btnW, btnH);
 
-        // Data-driven button layout - Better than repeated Button + IsItemActive calls
-        // Easier to modify layout or add movement modes, single render loop per row
+        // Układ przycisków oparty na danych — mniej powtarzalnego kodu, more cute owo
+        // Prościej dodawać tryby ruchu i ogólnie rządzić przyciskami, uwu
         struct MovementButton {
             const char* label;
             bool* state;
@@ -203,7 +224,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::Button(ICON_FA_ARROW_DOWN "##Tyl", btnSize);
         state.ruch_tyl = ImGui::IsItemActive();
 
-        // Rotation controls
+        // Kontrolki obrotu, bo robot też chce zakręcić główką uwu
         ImGui::Spacing();
         ImGui::Button(ICON_FA_ROTATE_LEFT "##OBR.L", btnSize);
         state.skret_lewo = ImGui::IsItemActive();
@@ -213,26 +234,25 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::End();
     }
 
-    // Ustawienia - consolidated with ternary for scale controls
+    // Ustawienia aplikacji — tu skala, kolory i inne bajery, owo
     if (state.show_ustawienia_aplikacji) {
         WymusGraniceOkna("Ustawienia");
         ImGui::Begin("Ustawienia", &state.show_ustawienia_aplikacji, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text(" Wybierz monitor ");
-        const char* preview = glfwGetMonitorName(monitors[state.selected_monitor]);
-        if (ImGui::BeginCombo("##Wybierz Monitor", preview)) {
+        if (const char* preview = glfwGetMonitorName(monitors[state.selected_monitor]); ImGui::BeginCombo("##Wybierz Monitor", preview)) {
             for (int n = 0; n < monitorCount; n++) {
                 if (ImGui::Selectable(glfwGetMonitorName(monitors[n]), state.selected_monitor == n)) {
                     state.selected_monitor = n;
                     const GLFWvidmode* m = glfwGetVideoMode(monitors[n]);
                     int x, y; glfwGetMonitorPos(monitors[n], &x, &y);
-                    glfwSetWindowMonitor(window, NULL, x, y, m->width, m->height, m->refreshRate);
+                    glfwSetWindowMonitor(window, nullptr, x, y, m->width, m->height, m->refreshRate);
                 }
             }
             ImGui::EndCombo();
         }
         ImGui::Separator();
         ImGui::Text(" Skala Interfejsu ");
-        // Better than separate if: clamp inline with ternary operators
+        // Lepiej niż osobne ify: ograniczamy wartość inline z ternary, taki sprytny sposób, uwu
         if (ImGui::Button("-", ImVec2(40, 40))) { state.skala_tekstu = (state.skala_tekstu > 0.5f) ? state.skala_tekstu - 0.1f : 0.5f; }
         ImGui::SameLine(); ImGui::Text(" %.1f ", state.skala_tekstu);
         ImGui::SameLine(); if (ImGui::Button("+", ImVec2(40, 40))) { state.skala_tekstu = (state.skala_tekstu < 3.5f) ? state.skala_tekstu + 0.1f : 3.5f; }
@@ -259,7 +279,7 @@ void GuiModule::RenderFrame(GLFWwindow* window, AppState& state, int monitorCoun
         ImGui::Dummy(ImVec2(400, 300));
         ImGui::End();
     }
-    // FPS
+    // FPS i logi — mały overlay z historią komend, bo trzeba widzieć co się działo, nya
     if (state.show_debug_info) {
         ImGui::SetNextWindowPos(ImVec2(10, io.DisplaySize.y - 10), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
         ImGui::Begin("FPS_Overlay", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);

@@ -9,7 +9,6 @@ int main() {
     if (!glfwInit()) return -1;
 
     AppState state;
-    Logic logic;
     ConfigManager::Laduj(state);
 
     int monitorCount;
@@ -21,7 +20,7 @@ int main() {
     int mX, mY; glfwGetMonitorPos(targetMonitor, &mX, &mY);
 
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Robot Control", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Robot Control", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glfwSetWindowPos(window, mX, mY);
     glfwSwapInterval(1);
@@ -29,7 +28,8 @@ int main() {
     GuiModule::Setup(window);
 
     state.is_running = true;
-    std::thread logicThread(&Logic::ParseCommand, &logic, std::ref(state));
+    // ParseCommand is a static function taking AppState&; pass state directly.
+    std::thread logicThread(&Logic::ParseCommand, std::ref(state));
     logicThread.detach();
 
     while (!glfwWindowShouldClose(window)) {

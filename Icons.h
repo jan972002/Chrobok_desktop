@@ -1,6 +1,6 @@
 //
-// Created by jan97 on 08.01.2026.
-//
+// Ikony i definicje stringów — emoji dla przycisków, wszystko ładnie ułożone, uwu
+// Created by jan97 on 08.01.2026. (trochę kawaii komentarzy dorzuconych owo)
 #pragma once
 
 

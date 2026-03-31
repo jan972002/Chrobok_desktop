@@ -1,7 +1,6 @@
-//
-// Created by jan97 on 08.01.2026.
-//
 #pragma once
+// Moduł GUI — rysujemy okienka i przyciski, wszystko cute i responsywne, uwu
+// Created by jan97 on 08.01.2026. (komentarze przepuszczone przez kawaii filtr owo)
 #include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "AppState.h"
