@@ -25,5 +25,7 @@ Suspension system and traction mechanics files will not be added here. If you wi
 
 <img width="1610" height="1464" alt="image" src="https://github.com/jan972002/Chrobok_desktop/blob/master/obraz_2026-01-31_074710472.png" />
 
+Ten projekt jest udostępniony na licencji CC BY-NC-SA 4.0. Możesz: kopiować, modyfikować i udostępniać kod. Nie możesz: używać go do celów komercyjnych (zarobkowych) oraz wewnątrz firm bez mojej zgody.
 
+This project is licensed under CC BY-NC-SA 4.0. You can: copy, modify, and redistribute the code. You cannot: use it for commercial purposes or within a company without my permission.
 
