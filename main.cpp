@@ -4,6 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #include "Logic.h"
 #include <thread>
+#include "AppState.h"
 
 int main() {
     if (!glfwInit()) return -1;
@@ -11,7 +12,7 @@ int main() {
     AppState state;
     Logic logic;
     ConfigManager::Laduj(state);
-
+    logic.getSSID(state);
     int monitorCount;
     GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
     if (state.selected_monitor >= monitorCount) state.selected_monitor = 0;
@@ -24,7 +25,7 @@ int main() {
     GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Robot Control", NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSetWindowPos(window, mX, mY);
-    glfwSwapInterval(1);
+    glfwSwapInterval(state.vsync_state);
 
     GuiModule::Setup(window);
 
@@ -32,11 +33,16 @@ int main() {
     std::thread logicThread(&Logic::ParseCommand, &logic, std::ref(state));
     logicThread.detach();
 
+    std::thread cameraThread(&Logic::CameraLoop, &logic, std::ref(state));
+    cameraThread.detach();
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) break;
 
-        GuiModule::RenderFrame(window, state, monitorCount, monitors);
+        logic.UpdateTexture(state);
+
+        GuiModule::RenderFrame(window, state, monitorCount, monitors, logic);
 
         int dw, dh; glfwGetFramebufferSize(window, &dw, &dh);
         glViewport(0, 0, dw, dh);
@@ -46,7 +52,9 @@ int main() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
+
     state.is_running = false;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     ConfigManager::Zapisz(state);
     GuiModule::Shutdown();
@@ -54,4 +62,3 @@ int main() {
     glfwTerminate();
     return 0;
 }
-

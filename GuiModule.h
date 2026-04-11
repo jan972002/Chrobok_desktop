@@ -5,11 +5,11 @@
 #include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "AppState.h"
-
+#include "Logic.h"
 class GuiModule {
 public:
     static void Setup(GLFWwindow* window);
-    static void RenderFrame(GLFWwindow* window, AppState& state, int monitorCount, GLFWmonitor** monitors);
+    static void RenderFrame(GLFWwindow* window, AppState& state, int monitorCount, GLFWmonitor** monitors, Logic& logic);
     static void Shutdown();
     static float menuBarHeight;
 private:

@@ -5,6 +5,7 @@
 #include<string>
 #include<vector>
 #include<mutex>
+#include <opencv2/opencv.hpp>
 
 struct AppState {
     // Interfejs
@@ -17,6 +18,7 @@ struct AppState {
     bool show_sterowanie_ramienia = false;
     bool show_parametry_ramienia = false;
     bool show_sterowanie_ruchem = false;
+    bool show_sterowanie_kinematyka = false;
     bool show_detekcja_obrazu = false;
     bool show_odczyt_lidar = false;
     bool show_ustawienia_aplikacji = false;
@@ -25,6 +27,7 @@ struct AppState {
     bool show_aboutUs_info = false;
     bool show_aboutProject_info = false;
     bool show_console = true;
+    bool vsync_state = true;
 
     bool is_running = false;
 
@@ -46,20 +49,48 @@ struct AppState {
 
     // Zmienne Serv
     int M_1 = 500; // 500-2380
-    int M_2 = 75; // 0-150
+    int M_2 = 90; // 0-180
     int M_3 = 30; // 0-180
-    int M_4 = 180; // 0-180
+    int M_4 = 34; // 0-180
     int M_5 = 90; // 0-180
 
     // Dodatkowe
     int dummy = 127;
     std::string nazwaAplikacji = "Chrobok Desktop";
-    std::string dataWydania = "09.01.2025";
-    std::string wersjaAplikacji = "1.0.1-beta";
+    std::string dataWydania = "23.02.2026";
+    std::string wersjaAplikacji = "1.2.2-beta";
+
     std::string oNas = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa";
     std::string oProjekcie = "agjnoaijfaifgj aifaijf afijfij  aifjfa0iwafiajfa0 aifjai0jfafa  afuaiffaij aijfaifja0f aif0ja0ijfa ";
 
     std::vector<std::string> historia_komend;
     int max_logow = 5;
+
+    // Kamera
+    bool camera_is_running = false;
+    unsigned int cameraTexture = 0;
+    cv::VideoCapture cap;
+    int selected_camera_index = 0;
+    bool camera_needs_reset = false;
+
+    std::string portName = "";
+    bool is_usb_connected = false;
+    bool is_network_connected = false;
+    std::string robot_ip = "192.168.4.1";
+    int robot_port = 4210;
+    std::string SSID = "Sprawdzam...";
+
+    ///////////////////////////////////////////
+    ///                                     ///
+    ///             KINEMATYKA              ///
+    ///                                     ///
+    ///////////////////////////////////////////
+
+    static const int dlugoscPrzedramienia = 25;
+    static const int dlugoscPodstawy = 30;
+    float wspolrzednaX = 7;
+    float wspolrzednaY = 13;
+    int offsetPodstawy = 34;
+    float krokKinematyka = 0.5f;
 };
 
